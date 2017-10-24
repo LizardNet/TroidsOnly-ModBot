@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.core.requests.RestAction;
 
 import com.troidsonly.modbot.ModBot;
 
@@ -121,5 +122,17 @@ public final class Miscellaneous {
             }
 
             return httpURLConnection.getInputStream();
+    }
+
+    public static boolean completeActionWithErrorHandling(GuildMessageReceivedEvent event, RestAction<?> action) {
+        try {
+            action.complete(false);
+            return true;
+        } catch (Exception e) {
+            Miscellaneous.respond(event, ":frowning: Unable to comply due to an exception: " + e.toString());
+            Miscellaneous.respond(event, "My console will have more information about this error.");
+            e.printStackTrace(System.err);
+            return false;
+        }
     }
 }

@@ -46,7 +46,7 @@ import java.util.Set;
 
 import net.dv8tion.jda.core.hooks.EventListener;
 
-import com.troidsonly.modbot.commands.AdminHandler;
+import com.troidsonly.modbot.commands.admin.AdminHandler;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.hooks.CommandListener;
 import com.troidsonly.modbot.hooks.Fantasy;

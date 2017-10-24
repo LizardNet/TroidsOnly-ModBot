@@ -30,7 +30,7 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands;
+package com.troidsonly.modbot.commands.admin;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -112,7 +112,7 @@ public class AdminHandler implements CommandHandler {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what to change my username to!");
                     } else {
-                        event.getJDA().getSelfUser().getManager().setName(remainder).complete();
+                        Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setName(remainder));
                     }
                 } else {
                     Miscellaneous.respond(event, E_PERMFAIL);
@@ -137,10 +137,10 @@ public class AdminHandler implements CommandHandler {
                             } else if (channels.size() > 1) {
                                 Miscellaneous.respond(event, "Multiple channels matched the name " + args[0]);
                             } else {
-                                channels.get(0).sendMessage(remainder).complete();
+                                Miscellaneous.completeActionWithErrorHandling(event, channels.get(0).sendMessage(remainder));
                             }
                         } else {
-                            event.getChannel().sendMessage(remainder).complete();
+                            Miscellaneous.completeActionWithErrorHandling(event, event.getChannel().sendMessage(remainder));
                         }
                     } else {
                         Miscellaneous.respond(event, "Error: You need to give me a message to send.  Syntax: say {[#channel]} [message]");
@@ -158,8 +158,9 @@ public class AdminHandler implements CommandHandler {
             case CMD_SETAVATAR:
                 if (acl.hasPermission(event.getMember(), "usercon")) {
                     if (commands.size() == 2 && commands.get(1).equals(AVATAR_DEFAULT)) {
-                        event.getJDA().getSelfUser().getManager().setAvatar(null).complete();
-                        Miscellaneous.respond(event, "Avatar reset to Discord default");
+                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setAvatar(null))) {
+                            Miscellaneous.respond(event, "Avatar reset to Discord default");
+                        }
                     } else {
                         URL url;
 
@@ -170,14 +171,19 @@ public class AdminHandler implements CommandHandler {
                             return;
                         }
 
+                        Icon icon;
+
                         try (InputStream is = Miscellaneous.getHttpInputStream(url)) {
-                            Icon icon = Icon.from(is);
-                            event.getJDA().getSelfUser().getManager().setAvatar(icon).complete();
-                            Miscellaneous.respond(event, "Done!");
+                            icon = Icon.from(is);
                         } catch (Exception e) {
                             Miscellaneous.respond(event, "Unable to comply due to an exception: " + e.toString());
                             Miscellaneous.respond(event, "My console will have more information about this error.");
                             e.printStackTrace(System.err);
+                            return;
+                        }
+
+                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setAvatar(icon))) {
+                            Miscellaneous.respond(event, "Done!");
                         }
                     }
                 } else {
