@@ -10,6 +10,10 @@ or without modifications, is also licensed under the GNU GPL. (Although not
 required by the license, we also ask that you attribute us!) There is NO
 WARRANTY FOR THIS SOFTWARE to the extent permitted by law.
 
+This project contains code and components derived from the
+LizardIRC/Beancounter IRC bot <https://www.lizardirc.org/?page=beancounter>,
+which is also licensed GNU GPLv3+.
+
 This is an open source project. The source Git repositories, which you are
 welcome to contribute to, can be found here:
 <https://gerrit.fastlizard4.org/r/gitweb?p=TroidsOnly%2FModBot.git;a=summary>
