@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
@@ -56,7 +57,10 @@ public class AdminHandler implements CommandHandler {
     private static final String CMD_USERNAME = "setusername";
     private static final String CMD_SAY = "say";
     private static final String CMD_SETAVATAR = "setavatar";
-    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_QUIT, CMD_CHGNICK, CMD_REMOVENICK, CMD_USERNAME, CMD_SAY, CMD_SETAVATAR);
+    private static final String CMD_SETPLAYING = "setplaying";
+    private static final String CMD_REMOVEPLAYING = "removeplaying";
+    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_QUIT, CMD_CHGNICK, CMD_REMOVENICK, CMD_USERNAME, CMD_SAY, CMD_SETAVATAR,
+        CMD_SETPLAYING, CMD_REMOVEPLAYING);
 
     private static final String AVATAR_DEFAULT = "default";
     private static final Set<String> SETAVATAR_SUBCMDS = ImmutableSet.of(AVATAR_DEFAULT);
@@ -200,6 +204,26 @@ public class AdminHandler implements CommandHandler {
                             Miscellaneous.respond(event, "Done!");
                         }
                     }
+                } else {
+                    Miscellaneous.respond(event, E_PERMFAIL);
+                }
+                break;
+            case CMD_SETPLAYING:
+                if (acl.hasPermission(event.getMember(), "usercon")) {
+                    if (remainder.isEmpty()) {
+                        Miscellaneous.respond(event, "You need to tell me what I'm playing!");
+                    } else {
+                        event.getJDA().getPresence().setGame(Game.of(remainder));
+                        Miscellaneous.respond(event, "Now playing information set!");
+                    }
+                } else {
+                    Miscellaneous.respond(event, E_PERMFAIL);
+                }
+                break;
+            case CMD_REMOVEPLAYING:
+                if (acl.hasPermission(event.getMember(), "usercon")) {
+                    event.getJDA().getPresence().setGame(null);
+                    Miscellaneous.respond(event, "Now playing information removed.");
                 } else {
                     Miscellaneous.respond(event, E_PERMFAIL);
                 }
