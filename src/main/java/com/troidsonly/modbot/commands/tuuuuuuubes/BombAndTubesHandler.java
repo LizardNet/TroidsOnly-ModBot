@@ -255,6 +255,7 @@ public class BombAndTubesHandler implements CommandHandler {
                     Miscellaneous.respond(event, ":fearful: Could not open the tubes: " + e.toString());
                     e.printStackTrace(System.err);
                 }
+                break;
         }
     }
 
