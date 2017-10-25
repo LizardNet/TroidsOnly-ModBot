@@ -18,3 +18,9 @@ dependency-reduced-pom.xml
 
 #...but not their defaults
 !src/main/resources/default.config.props
+
+#Ignore the tubes folder
+/tubes/
+
+#Ignore state files
+*.json
