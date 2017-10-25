@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9a91bd0f_1ffe436c",
+        "filename": "src/main/java/com/troidsonly/modbot/commands/log/LogCommandHandler.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 332,
+      "author": {
+        "id": 1
+      },
+      "writtenOn": "2017-10-25T09:51:19Z",
+      "side": 1,
+      "message": "\"user channel log filters\"\n\n?al",
+      "revId": "89d844546a10ae5e5e8f2c122a47a3b95d17d802",
+      "serverId": "cf5d0eaf-4814-484b-b55f-41cd7f22928e",
+      "unresolved": false
+    }
+  ]
+}
