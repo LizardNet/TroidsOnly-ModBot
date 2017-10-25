@@ -51,11 +51,12 @@ public class AdminHandler implements CommandHandler {
     public static final String E_PERMFAIL = "No u!  (You don't have permission to do this.)";
 
     private static final String CMD_QUIT = "quit";
-    private static final String CMD_CHGNICK = "chgnick";
-    private static final String CMD_USERNAME = "chgusername";
+    private static final String CMD_CHGNICK = "setnick";
+    private static final String CMD_REMOVENICK = "removenick";
+    private static final String CMD_USERNAME = "setusername";
     private static final String CMD_SAY = "say";
     private static final String CMD_SETAVATAR = "setavatar";
-    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_QUIT, CMD_CHGNICK, CMD_USERNAME, CMD_SAY, CMD_SETAVATAR);
+    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_QUIT, CMD_CHGNICK, CMD_REMOVENICK, CMD_USERNAME, CMD_SAY, CMD_SETAVATAR);
 
     private static final String AVATAR_DEFAULT = "default";
     private static final Set<String> SETAVATAR_SUBCMDS = ImmutableSet.of(AVATAR_DEFAULT);
@@ -101,7 +102,18 @@ public class AdminHandler implements CommandHandler {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what to change my nickname to!");
                     } else {
-                        event.getGuild().getController().setNickname(event.getGuild().getMember(event.getJDA().getSelfUser()), remainder).complete();
+                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().getController().setNickname(event.getGuild().getMember(event.getJDA().getSelfUser()), remainder))) {
+                            Miscellaneous.respond(event, "Changed my nickname!");
+                        }
+                    }
+                } else {
+                    Miscellaneous.respond(event, E_PERMFAIL);
+                }
+                break;
+            case CMD_REMOVENICK:
+                if (acl.hasPermission(event.getMember(), "nick")) {
+                    if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().getController().setNickname(event.getGuild().getMember(event.getJDA().getSelfUser()), null))) {
+                        Miscellaneous.respond(event, "Removed my nickname.");
                     }
                 } else {
                     Miscellaneous.respond(event, E_PERMFAIL);
@@ -112,7 +124,9 @@ public class AdminHandler implements CommandHandler {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what to change my username to!");
                     } else {
-                        Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setName(remainder));
+                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setName(remainder))) {
+                            Miscellaneous.respond(event, "Changed my username!");
+                        }
                     }
                 } else {
                     Miscellaneous.respond(event, E_PERMFAIL);
