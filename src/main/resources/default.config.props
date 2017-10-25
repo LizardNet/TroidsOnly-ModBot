@@ -24,3 +24,10 @@ authToken=
 # you first run the bot, otherwise you won't be able to set it up!  You can specify multiple user IDs by separating them
 # with commas.
 #ownerUid=
+
+# statefileName: String - The name (or possibly an absolute path to) the file to save the bot's state in.  Defaults to
+# state.json.
+#statefileName=state.json
+
+# tubesDirectory: String - The name (possibly an absolute path to) the folder containing tubes.  Defaults to tubes.
+#tubesDirectory=tubes

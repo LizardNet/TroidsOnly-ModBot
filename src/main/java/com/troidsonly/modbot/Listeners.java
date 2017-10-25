@@ -37,6 +37,8 @@
 
 package com.troidsonly.modbot;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,12 +49,15 @@ import java.util.Set;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import com.troidsonly.modbot.commands.admin.AdminHandler;
+import com.troidsonly.modbot.commands.tuuuuuuubes.BombAndTubesHandler;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.hooks.CommandListener;
 import com.troidsonly.modbot.hooks.Fantasy;
 import com.troidsonly.modbot.hooks.MultiCommandHandler;
+import com.troidsonly.modbot.persistence.GsonPersistenceWrapper;
+import com.troidsonly.modbot.persistence.PersistenceWrapper;
 import com.troidsonly.modbot.security.AccessControl;
-import com.troidsonly.modbot.security.OwnerAccessControl;
+import com.troidsonly.modbot.security.DiscordGuildRoleAccessControl;
 
 class Listeners {
     private final Set<EventListener> ownListeners = new HashSet<>();
@@ -70,12 +75,20 @@ class Listeners {
     public void register() {
         String fantasyString = properties.getProperty("fantasyString", "?");
         String[] ownerUids = properties.getProperty("ownerUid", "").split(",");
+        String statefileName = properties.getProperty("statefileName", "state.json");
+        String tubesDirectory = properties.getProperty("tubesDirectory", "tubes");
 
-        AccessControl acl = new OwnerAccessControl(new HashSet<>(Arrays.asList(ownerUids)));
+        Path statefile = Paths.get(statefileName);
+        Path tubes = Paths.get(tubesDirectory);
+
+        PersistenceWrapper<?> wrapper = new GsonPersistenceWrapper(statefile);
+
+        AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
         handlers.add(new AdminHandler(acl));
+        handlers.add(new BombAndTubesHandler(wrapper, tubes, acl));
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
