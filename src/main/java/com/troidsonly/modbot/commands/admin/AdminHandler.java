@@ -140,25 +140,22 @@ public class AdminHandler implements CommandHandler {
                 if (acl.hasPermission(event.getMember(), "say")) {
                     if (!remainder.isEmpty()) {
                         String[] args = remainder.split(" ");
+                        String message;
 
                         if (Miscellaneous.isChannelLike(args[0])) {
                             if (args.length < 2) {
                                 Miscellaneous.respond(event, "Error: Too few arguments. Syntax: say [#channel] [message]");
-                            } else {
-                                remainder = remainder.substring(args[0].length()).trim();
+                                return;
                             }
 
-                            List<TextChannel> channels = event.getGuild().getTextChannelsByName(args[0].substring(1), true);
-
-                            if (channels.isEmpty()) {
-                                Miscellaneous.respond(event, "No channels matched the name " + args[0]);
-                            } else if (channels.size() > 1) {
-                                Miscellaneous.respond(event, "Multiple channels matched the name " + args[0]);
-                            } else {
-                                Miscellaneous.completeActionWithErrorHandling(event, channels.get(0).sendMessage(remainder));
+                            TextChannel targetChannel = Miscellaneous.resolveTextChannelName(event, args[0]);
+                            if (targetChannel != null) {
+                                message = event.getMessage().getRawContent().substring(commands.get(0).length() + targetChannel.getAsMention().length() + 1).trim();
+                                Miscellaneous.completeActionWithErrorHandling(event, targetChannel.sendMessage(message));
                             }
                         } else {
-                            Miscellaneous.completeActionWithErrorHandling(event, event.getChannel().sendMessage(remainder));
+                            message = event.getMessage().getRawContent().substring(commands.get(0).length()).trim();
+                            Miscellaneous.completeActionWithErrorHandling(event, event.getChannel().sendMessage(message));
                         }
                     } else {
                         Miscellaneous.respond(event, "Error: You need to give me a message to send.  Syntax: say {[#channel]} [message]");

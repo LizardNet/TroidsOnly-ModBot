@@ -47,6 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
@@ -133,6 +134,24 @@ public final class Miscellaneous {
             Miscellaneous.respond(event, "My console will have more information about this error.");
             e.printStackTrace(System.err);
             return false;
+        }
+    }
+
+    public static TextChannel resolveTextChannelName(GuildMessageReceivedEvent event, String channelName) {
+        if (!isChannelLike(channelName)) {
+            throw new IllegalArgumentException("channelName does not appear to be a valid channel name");
+        }
+
+        List<TextChannel> channels = event.getGuild().getTextChannelsByName(channelName.substring(1), true);
+
+        if (channels.isEmpty()) {
+            Miscellaneous.respond(event, "No channels matched the name " + channelName);
+            return null;
+        } else if (channels.size() > 1) {
+            Miscellaneous.respond(event, "Multiple channels matched the name " + channelName);
+            return null;
+        } else {
+            return channels.get(0);
         }
     }
 }
