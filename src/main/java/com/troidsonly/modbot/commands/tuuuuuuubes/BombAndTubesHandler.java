@@ -76,10 +76,12 @@ public class BombAndTubesHandler implements CommandHandler {
     private final BombsAndTubesRepository config;
     private final Random random = new Random();
 
-    private Map<String, Integer> bombCount = new HashMap<>();
-    private Map<String, Long> bombRatelimitEnd = new HashMap<>();
-    private Map<String, Integer> tubeCount = new HashMap<>();
-    private Map<String, Long> tubeRatelimitEnd = new HashMap<>();
+    // Ratelimiting stuff; mapping the usage of each command or the end of the ratelimit period for each channel.
+    // Keys are numeric channel IDs.
+    private final Map<String, Integer> bombCount = new HashMap<>();
+    private final Map<String, Long> bombRatelimitEnd = new HashMap<>();
+    private final Map<String, Integer> tubeCount = new HashMap<>();
+    private final Map<String, Long> tubeRatelimitEnd = new HashMap<>();
 
     public BombAndTubesHandler(PersistenceWrapper<?> persistenceWrapper, Path tubesPath, AccessControl acl) {
         pm = persistenceWrapper.getPersistenceManager("tuuuuuuubes", BombsAndTubesRepository.class);

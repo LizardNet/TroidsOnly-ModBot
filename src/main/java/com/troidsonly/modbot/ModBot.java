@@ -51,7 +51,7 @@ import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 
 public class ModBot {
-    @SuppressWarnings("unused") public static final String PROJECT_NAME = "TroidsOnly/ModBot";
+    public static final String PROJECT_NAME = "TroidsOnly/ModBot";
     private final JDABuilder botBuilder;
 
     public ModBot(Properties properties) {
@@ -82,7 +82,7 @@ public class ModBot {
         // Expect 0 or 1 arguments.  If present, argument is the location of the startup configuration file to use
         if (args.length > 1) {
             System.err.println("Error: Too many arguments.");
-            System.err.println("Usage: java -jar beancounter.jar [configurationFile]");
+            System.err.println("Usage: java -jar modbot.jar [configurationFile]");
             System.err.println("Where: configurationFile is the optional path to a startup configuration file.");
             System.exit(2);
         } else if (args.length == 1) {
