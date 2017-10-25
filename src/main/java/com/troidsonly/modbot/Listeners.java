@@ -49,6 +49,7 @@ import java.util.Set;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import com.troidsonly.modbot.commands.admin.AdminHandler;
+import com.troidsonly.modbot.commands.log.LogListener;
 import com.troidsonly.modbot.commands.tuuuuuuubes.BombAndTubesHandler;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.hooks.CommandListener;
@@ -85,12 +86,16 @@ class Listeners {
 
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
 
+        LogListener logListener = new LogListener(wrapper, acl);
+
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
         handlers.add(new AdminHandler(acl));
         handlers.add(new BombAndTubesHandler(wrapper, tubes, acl));
+        handlers.add(logListener.getCommandHandler());
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
+        ownListeners.add(logListener);
     }
 }
