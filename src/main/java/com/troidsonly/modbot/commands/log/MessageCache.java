@@ -61,10 +61,15 @@ class MessageCache {
         final int messagesToRetrieve = QUEUE_SIZE > 100 ? 100 : QUEUE_SIZE;
 
         for (TextChannel channel : channels) {
-            List<Message> messages = channel.getHistory().retrievePast(messagesToRetrieve).complete();
-            messageCache.getUnchecked(channel).addAll(messages);
-            primaryLoggingChannel.sendMessage("Retrieved " + Integer.toString(messages.size()) + " messages for #" +
-                channel.getName() + " and added them to the message cache").queue();
+            try {
+                List<Message> messages = channel.getHistory().retrievePast(messagesToRetrieve).complete();
+                messageCache.getUnchecked(channel).addAll(messages);
+                primaryLoggingChannel.sendMessage("Retrieved " + Integer.toString(messages.size()) + " messages for #" +
+                    channel.getName() + " and added them to the message cache").queue();
+            } catch (Exception e) {
+                primaryLoggingChannel.sendMessage("Failed to retrieve history for #" + channel.getName() +
+                ": `" + e.toString() + "`; continuing with next channel.").queue();
+            }
         }
 
         primaryLoggingChannel.sendMessage("MessageCache ready.").queue();
