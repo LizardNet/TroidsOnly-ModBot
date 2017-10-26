@@ -160,7 +160,7 @@ public class LogListener extends ListenerAdapter {
         }
     }
 
-    private String qualifyName(Member member) {
+    private static String qualifyName(Member member) {
         StringBuilder sb = new StringBuilder(member.getUser().getName())
             .append('#')
             .append(member.getUser().getDiscriminator());
@@ -176,7 +176,7 @@ public class LogListener extends ListenerAdapter {
         return sb.toString();
     }
 
-    private String qualifyName(User user) {
+    private static String qualifyName(User user) {
         StringBuilder sb = new StringBuilder(user.getName())
             .append('#')
             .append(user.getDiscriminator());
@@ -187,7 +187,7 @@ public class LogListener extends ListenerAdapter {
         return sb.toString();
     }
 
-    private String getFullMessage(Message message) {
+    private static String getFullMessage(Message message) {
         StringBuilder output = new StringBuilder(message.getRawContent());
 
         if (message.getAttachments().size() >= 1) {
@@ -218,6 +218,12 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
 
             if (oldMessage.isPresent()) {
+                if (getFullMessage(oldMessage.get()).equals(getFullMessage(newMessage))) {
+                    // Texts are the same - we can ignore this, but still update the message cache.
+                    messageCache.updateMessage(newMessage);
+                    return;
+                }
+
                 embedBuilder.addField("Old Message", getFullMessage(oldMessage.get()), false);
             } else {
                 embedBuilder.addField("Old message not available", "Could not find the old message text in the message " +
@@ -396,7 +402,7 @@ public class LogListener extends ListenerAdapter {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .map(Message::getMember)
-            .map(this::qualifyName)
+            .map(LogListener::qualifyName)
             .collect(Collectors.toList());
 
         embedBuilder.setTitle("Message bulk delete logged in channel #" + event.getChannel().getName());
