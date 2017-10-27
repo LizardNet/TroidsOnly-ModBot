@@ -44,11 +44,16 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.security.auth.login.LoginException;
 
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class ModBot {
     public static final String PROJECT_NAME = "TroidsOnly/ModBot";
@@ -62,7 +67,7 @@ public class ModBot {
             System.exit(1);
         }
 
-        Listeners listeners = new Listeners(properties);
+        Listeners listeners = new Listeners(properties, constructExecutorService());
 
         listeners.register();
 
@@ -121,5 +126,15 @@ public class ModBot {
             System.err.println("Unrecoverable error - shutting down.");
             System.exit(1);
         }
+    }
+
+    private ExecutorService constructExecutorService() {
+        BasicThreadFactory factory = new BasicThreadFactory.Builder()
+            .namingPattern("primaryExecutorPool-thread%d")
+            .daemon(true)
+            .build();
+        ThreadPoolExecutor ret = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), factory);
+        ret.allowCoreThreadTimeOut(true);
+        return ret;
     }
 }

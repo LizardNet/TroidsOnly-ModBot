@@ -45,7 +45,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
+import com.troidsonly.modbot.commands.cryo.CryoHandler;
+import com.troidsonly.modbot.commands.filter.FilterListener;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import com.troidsonly.modbot.commands.admin.AdminHandler;
@@ -64,9 +67,11 @@ class Listeners {
     private final Set<EventListener> ownListeners = new HashSet<>();
 
     private final Properties properties;
+    private final ExecutorService executorService;
 
-    public Listeners(Properties properties) {
+    public Listeners(Properties properties, ExecutorService executorService) {
         this.properties = properties;
+        this.executorService = executorService;
     }
 
     public Set<EventListener> getAllListeners() {
@@ -83,19 +88,22 @@ class Listeners {
         Path tubes = Paths.get(tubesDirectory);
 
         PersistenceWrapper<?> wrapper = new GsonPersistenceWrapper(statefile);
-
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
-
         LogListener logListener = new LogListener(wrapper, acl);
+        CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
+        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService);
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
         handlers.add(new AdminHandler(acl));
         handlers.add(new BombAndTubesHandler(wrapper, tubes, acl));
         handlers.add(logListener.getCommandHandler());
+        handlers.add(cryoHandler);
+        handlers.add(filterListener.getCommandHandler());
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
         ownListeners.add(logListener);
+        ownListeners.add(filterListener);
     }
 }

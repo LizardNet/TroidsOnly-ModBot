@@ -90,7 +90,7 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
     }
 
     private synchronized void sync() {
-        pm.set(persistence);
+        pm.persist(persistence);
         pm.sync();
     }
 

@@ -30,14 +30,40 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.persistence;
+package com.troidsonly.modbot.commands.filter;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface PersistenceManager<T> {
-    Optional<T> get();
+enum FilterAction {
+    LOG_ONLY("log-only"), // All actions imply this one
+    WARN_USER("warn-only"),
+    DELETE_MESSAGE_SILENT("delete-silent"),
+    DELETE_MESSAGE_AND_WARN("delete-and-warn"),
+    DELETE_MESSAGE_AND_KICK("delete-and-kick"), // Implies also informing the user what happened
+    DELETE_MESSAGE_AND_CRYO("delete-and-cryo"), // Implies also informing the user what happened
+    DELETE_MESSAGE_AND_BAN("delete-and-ban"); // Implies also informing the user what happened
 
-    void persist(T data);
+    private static final Map<String, FilterAction> fromStringMap = new HashMap<>();
 
-    void sync();
+    private final String stringRepresentation;
+
+    static {
+        for (FilterAction value : FilterAction.values()) {
+            fromStringMap.put(value.stringRepresentation, value);
+        }
+    }
+
+    FilterAction(String stringRepresentation) {
+        this.stringRepresentation = stringRepresentation;
+    }
+
+    @Override
+    public String toString() {
+        return stringRepresentation;
+    }
+
+    public static Map<String, FilterAction> getFromStringMap() {
+        return new HashMap<>(fromStringMap);
+    }
 }

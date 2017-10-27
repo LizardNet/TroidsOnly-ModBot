@@ -262,7 +262,7 @@ public class BombAndTubesHandler implements CommandHandler {
     }
 
     private synchronized void sync() {
-        pm.set(config);
+        pm.persist(config);
         pm.sync();
     }
 }

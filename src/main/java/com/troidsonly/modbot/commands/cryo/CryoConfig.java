@@ -30,14 +30,24 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.persistence;
+package com.troidsonly.modbot.commands.cryo;
 
-import java.util.Optional;
+import java.util.Objects;
 
-public interface PersistenceManager<T> {
-    Optional<T> get();
+class CryoConfig {
+    private String cryoRoleId;
 
-    void persist(T data);
+    public static CryoConfig empty() {
+        CryoConfig retval = new CryoConfig();
+        retval.cryoRoleId = null;
+        return retval;
+    }
 
-    void sync();
+    public String getCryoRoleId() {
+        return cryoRoleId;
+    }
+
+    public void setCryoRoleId(String cryoRoleId) {
+        this.cryoRoleId = Objects.requireNonNull(cryoRoleId);
+    }
 }

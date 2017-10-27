@@ -30,14 +30,24 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.persistence;
+package com.troidsonly.modbot.commands.filter;
 
-import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
-public interface PersistenceManager<T> {
-    Optional<T> get();
+import org.lizardirc.beancounter.utils.InterruptibleCharSequence;
 
-    void persist(T data);
+public class PatternMatchCallable implements Callable<Boolean> {
+    private final Pattern pattern;
+    private final InterruptibleCharSequence subject;
 
-    void sync();
+    public PatternMatchCallable(Pattern pattern, String subject) {
+        this.pattern = pattern;
+        this.subject = new InterruptibleCharSequence(subject);
+    }
+
+    @Override
+    public Boolean call() {
+        return pattern.matcher(subject).find();
+    }
 }

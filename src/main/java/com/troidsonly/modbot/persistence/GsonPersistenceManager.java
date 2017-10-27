@@ -67,7 +67,7 @@ public class GsonPersistenceManager<T> implements PersistenceManager<T> {
     }
 
     @Override
-    public synchronized void set(T data) {
+    public synchronized void persist(T data) {
         wrapper.set(namespace, gson.toJsonTree(data, type));
     }
 

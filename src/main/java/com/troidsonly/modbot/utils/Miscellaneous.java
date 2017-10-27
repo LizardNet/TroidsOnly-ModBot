@@ -41,13 +41,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import net.dv8tion.jda.core.entities.Member;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
@@ -153,5 +160,49 @@ public final class Miscellaneous {
         } else {
             return channels.get(0);
         }
+    }
+
+    public static String qualifyName(Member member) {
+        StringBuilder sb = new StringBuilder(member.getUser().getName())
+            .append('#')
+            .append(member.getUser().getDiscriminator());
+
+        if (member.getNickname() != null) {
+            sb.append(" / Nickname: ")
+                .append(member.getNickname());
+        }
+
+        sb.append(" / UID: ")
+            .append(member.getUser().getId());
+
+        return sb.toString();
+    }
+
+    public static String qualifyName(User user) {
+        StringBuilder sb = new StringBuilder(user.getName())
+            .append('#')
+            .append(user.getDiscriminator());
+
+        sb.append(" / UID: ")
+            .append(user.getId());
+
+        return sb.toString();
+    }
+
+    public static String getFullMessage(Message message) {
+        StringBuilder output = new StringBuilder(message.getRawContent());
+
+        if (message.getAttachments().size() >= 1) {
+            for (Message.Attachment attachment : message.getAttachments()) {
+                output.append(" ")
+                    .append(attachment.getUrl());
+            }
+        }
+
+        return output.toString();
+    }
+
+    public static String unixEpochToRfc1123DateTimeString(long epochSeconds) {
+        return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault()).format(DateTimeFormatter.RFC_1123_DATE_TIME);
     }
 }

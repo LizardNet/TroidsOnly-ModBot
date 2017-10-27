@@ -30,14 +30,25 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.persistence;
+package com.troidsonly.modbot.commands.filter;
 
-import java.util.Optional;
+public class BadFilterException extends Exception {
+    public BadFilterException() {
+    }
 
-public interface PersistenceManager<T> {
-    Optional<T> get();
+    public BadFilterException(String message) {
+        super(message);
+    }
 
-    void persist(T data);
+    public BadFilterException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    void sync();
+    public BadFilterException(Throwable cause) {
+        super(cause);
+    }
+
+    protected BadFilterException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+    }
 }

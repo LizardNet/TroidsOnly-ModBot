@@ -30,14 +30,32 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.persistence;
+package com.troidsonly.modbot.commands.filter;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 
-public interface PersistenceManager<T> {
-    Optional<T> get();
+class FilterRepository {
+    private List<RegexFilter> filterList;
 
-    void persist(T data);
+    private transient Consumer<List<RegexFilter>> getFilterListCallback = null;
 
-    void sync();
+    public static FilterRepository empty() {
+        FilterRepository retval = new FilterRepository();
+        retval.filterList = new ArrayList<>();
+        return retval;
+    }
+
+    public List<RegexFilter> getFilterList() {
+        if (getFilterListCallback != null) {
+            getFilterListCallback.accept(filterList);
+        }
+
+        return filterList;
+    }
+
+    void setGetFilterListCallback(Consumer<List<RegexFilter>> consumer) {
+        getFilterListCallback = consumer;
+    }
 }

@@ -98,7 +98,7 @@ public class LogListener extends ListenerAdapter {
     }
 
     synchronized void sync() {
-        pm.set(config);
+        pm.persist(config);
         pm.sync();
     }
 
@@ -160,44 +160,11 @@ public class LogListener extends ListenerAdapter {
         }
     }
 
-    private static String qualifyName(Member member) {
-        StringBuilder sb = new StringBuilder(member.getUser().getName())
-            .append('#')
-            .append(member.getUser().getDiscriminator());
-
-        if (member.getNickname() != null) {
-            sb.append(" / Nickname: ")
-                .append(member.getNickname());
+    public void sendToLog(String message) {
+        if (config.getEnabled() && jda != null) {
+            TextChannel target = jda.getTextChannelById(config.getPrimaryLogChannelId());
+            target.sendMessage(message).queue();
         }
-
-        sb.append(" / UID: ")
-            .append(member.getUser().getId());
-
-        return sb.toString();
-    }
-
-    private static String qualifyName(User user) {
-        StringBuilder sb = new StringBuilder(user.getName())
-            .append('#')
-            .append(user.getDiscriminator());
-
-        sb.append(" / UID: ")
-            .append(user.getId());
-
-        return sb.toString();
-    }
-
-    private static String getFullMessage(Message message) {
-        StringBuilder output = new StringBuilder(message.getRawContent());
-
-        if (message.getAttachments().size() >= 1) {
-            for (Message.Attachment attachment : message.getAttachments()) {
-                output.append(" ")
-                    .append(attachment.getUrl());
-            }
-        }
-
-        return output.toString();
     }
 
     @Override
@@ -215,22 +182,22 @@ public class LogListener extends ListenerAdapter {
             Optional<Message> oldMessage = messageCache.getMessageById(event.getMessageId(), event.getChannel());
 
             embedBuilder.setTitle("Edited message in #" + event.getChannel().getName());
-            embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
+            embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
 
             if (oldMessage.isPresent()) {
-                if (getFullMessage(oldMessage.get()).equals(getFullMessage(newMessage))) {
+                if (Miscellaneous.getFullMessage(oldMessage.get()).equals(Miscellaneous.getFullMessage(newMessage))) {
                     // Texts are the same - we can ignore this, but still update the message cache.
                     messageCache.updateMessage(newMessage);
                     return;
                 }
 
-                embedBuilder.addField("Old Message", getFullMessage(oldMessage.get()), false);
+                embedBuilder.addField("Old Message", Miscellaneous.getFullMessage(oldMessage.get()), false);
             } else {
                 embedBuilder.addField("Old message not available", "Could not find the old message text in the message " +
                     "cache; it was probably very old", false);
             }
 
-            embedBuilder.addField("New Message", getFullMessage(newMessage), false);
+            embedBuilder.addField("New Message", Miscellaneous.getFullMessage(newMessage), false);
             embedBuilder.addField("Message ID", newMessage.getId(), false);
             embedBuilder.setColor(new Color(0x55AAFF));
             embedBuilder.setTimestamp(Instant.now());
@@ -251,9 +218,9 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.setTitle("Deleted message in #" + event.getChannel().getName());
 
             if (oldMessage.isPresent()) {
-                embedBuilder.setDescription(getFullMessage(oldMessage.get()));
+                embedBuilder.setDescription(Miscellaneous.getFullMessage(oldMessage.get()));
                 member = oldMessage.get().getMember();
-                embedBuilder.setAuthor(qualifyName(member), null, member.getUser().getAvatarUrl());
+                embedBuilder.setAuthor(Miscellaneous.qualifyName(member), null, member.getUser().getAvatarUrl());
             } else {
                 embedBuilder.setDescription("Unfortunately, I could not find the deleted message in my MessageCache, so I can't " +
                     "show any information about it.  This probably means it was old.");
@@ -273,7 +240,7 @@ public class LogListener extends ListenerAdapter {
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
         embedBuilder.setTitle("User joined the server");
-        embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0x00CC00));
 
@@ -285,7 +252,7 @@ public class LogListener extends ListenerAdapter {
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
         embedBuilder.setTitle("User left the server");
-        embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0xFFFF00));
 
@@ -308,7 +275,7 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.addField("Old nickname", event.getPrevNick(), false);
         }
 
-        embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0x55AAFF));
 
@@ -322,7 +289,7 @@ public class LogListener extends ListenerAdapter {
         TextChannel primaryLogChannel = jda.getTextChannelById(config.getPrimaryLogChannelId());
 
         embedBuilder.setTitle("User changed their username");
-        embedBuilder.setAuthor(qualifyName(primaryLogChannel.getGuild().getMember(event.getUser())), null,
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(primaryLogChannel.getGuild().getMember(event.getUser())), null,
             event.getUser().getAvatarUrl());
         embedBuilder.setDescription("New username is given above.");
         embedBuilder.addField("Old username", oldUsername, false);
@@ -345,7 +312,7 @@ public class LogListener extends ListenerAdapter {
             .collect(Collectors.toList());
 
         embedBuilder.setTitle("User granted role(s)");
-        embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0x55AAFF));
@@ -361,7 +328,7 @@ public class LogListener extends ListenerAdapter {
             .collect(Collectors.toList());
 
         embedBuilder.setTitle("Role(s) revoked from user");
-        embedBuilder.setAuthor(qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0xFF8800));
@@ -374,7 +341,7 @@ public class LogListener extends ListenerAdapter {
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
         embedBuilder.setTitle("Ban set against above user");
-        embedBuilder.setAuthor(qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0xCC0000));
 
@@ -386,7 +353,7 @@ public class LogListener extends ListenerAdapter {
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
         embedBuilder.setTitle("Ban against above user rescinded");
-        embedBuilder.setAuthor(qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
         embedBuilder.setColor(new Color(0xCC00CC));
 
@@ -402,7 +369,7 @@ public class LogListener extends ListenerAdapter {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .map(Message::getMember)
-            .map(LogListener::qualifyName)
+            .map(Miscellaneous::qualifyName)
             .collect(Collectors.toList());
 
         embedBuilder.setTitle("Message bulk delete logged in channel #" + event.getChannel().getName());
