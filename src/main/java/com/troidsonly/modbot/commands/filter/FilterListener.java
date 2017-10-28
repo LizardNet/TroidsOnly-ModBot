@@ -61,18 +61,20 @@ public class FilterListener extends ListenerAdapter {
     private final PersistenceManager<FilterRepository> pm;
     private final CryoHandler cryoHandler;
     private final ExecutorService executorService;
+    private final String fantasyString;
 
     private final FilterCommandHandler filterCommandHandler;
     private final FilterRepository filterRepository;
 
     private JDA jda = null;
 
-    public FilterListener(AccessControl acl, LogListener logger, PersistenceWrapper<?> wrapper, CryoHandler cryoHandler, ExecutorService executorService) {
+    public FilterListener(AccessControl acl, LogListener logger, PersistenceWrapper<?> wrapper, CryoHandler cryoHandler, ExecutorService executorService, String fantasyString) {
         this.acl = acl;
         this.logger = logger;
         pm = wrapper.getPersistenceManager("FilterListener", FilterRepository.class);
         this.cryoHandler = cryoHandler;
         this.executorService = executorService;
+        this.fantasyString = fantasyString;
 
         filterCommandHandler = new FilterCommandHandler(this);
         filterRepository = pm.get().orElseGet(FilterRepository::empty);
@@ -158,6 +160,11 @@ public class FilterListener extends ListenerAdapter {
 
         if (member.getUser().equals(jda.getSelfUser())) {
             // Ignore the bot outright
+            return;
+        }
+
+        if (fullMessage.startsWith(fantasyString + FilterCommandHandler.CMD_FILTER) && acl.hasPermission(member, FilterCommandHandler.PERM_FILTER)) {
+            // The message appears to be a filter command from an authorized user; also ignore these outright
             return;
         }
 

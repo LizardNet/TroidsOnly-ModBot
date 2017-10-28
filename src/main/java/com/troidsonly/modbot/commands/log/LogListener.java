@@ -220,7 +220,11 @@ public class LogListener extends ListenerAdapter {
             if (oldMessage.isPresent()) {
                 embedBuilder.setDescription(Miscellaneous.getFullMessage(oldMessage.get()));
                 member = oldMessage.get().getMember();
-                embedBuilder.setAuthor(Miscellaneous.qualifyName(member), null, member.getUser().getAvatarUrl());
+                if (member != null) {
+                    embedBuilder.setAuthor(Miscellaneous.qualifyName(member), null, member.getUser().getAvatarUrl());
+                } else {
+                    embedBuilder.setAuthor(Miscellaneous.qualifyName(oldMessage.get().getAuthor()), null, oldMessage.get().getAuthor().getAvatarUrl());
+                }
             } else {
                 embedBuilder.setDescription("Unfortunately, I could not find the deleted message in my MessageCache, so I can't " +
                     "show any information about it.  This probably means it was old.");
@@ -368,7 +372,7 @@ public class LogListener extends ListenerAdapter {
             .map(messageId -> messageCache.getMessageById(messageId, event.getChannel()))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .map(Message::getMember)
+            .map(Message::getAuthor)
             .map(Miscellaneous::qualifyName)
             .collect(Collectors.toList());
 

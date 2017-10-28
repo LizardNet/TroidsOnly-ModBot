@@ -108,18 +108,22 @@ class LogCommandHandler implements CommandHandler {
             case CMD_LOG:
                 if (parent.getAcl().hasPermission(event.getMember(), PERM_MK_LOG_ENTRY)) {
                     if (parent.getConfig().getEnabled()) {
-                        String logMessage = event.getMessage().getRawContent().substring(commands.get(0).length()).trim();
+                        if (!remainder.isEmpty()) {
+                            String logMessage = event.getMessage().getRawContent().substring(commands.get(0).length()).trim();
 
-                        EmbedBuilder embedBuilder = new EmbedBuilder();
+                            EmbedBuilder embedBuilder = new EmbedBuilder();
 
-                        embedBuilder.setTitle("Log annotation");
-                        embedBuilder.setDescription(logMessage);
-                        embedBuilder.setColor(new Color(0xAAAAAA));
-                        embedBuilder.setTimestamp(Instant.now());
-                        embedBuilder.setFooter(event.getMember().getEffectiveName(), event.getAuthor().getAvatarUrl());
+                            embedBuilder.setTitle("Log annotation");
+                            embedBuilder.setDescription(logMessage);
+                            embedBuilder.setColor(new Color(0xAAAAAA));
+                            embedBuilder.setTimestamp(Instant.now());
+                            embedBuilder.setFooter(event.getMember().getEffectiveName(), event.getAuthor().getAvatarUrl());
 
-                        parent.sendToLog(embedBuilder.build());
-                        Miscellaneous.respond(event, "Logged your message.");
+                            parent.sendToLog(embedBuilder.build());
+                            Miscellaneous.respond(event, "Logged your message.");
+                        } else {
+                            Miscellaneous.respond(event, "You didn't give me a message to log!");
+                        }
                     } else {
                         Miscellaneous.respond(event, "Cannot comply - Logging is currently disabled.");
                     }

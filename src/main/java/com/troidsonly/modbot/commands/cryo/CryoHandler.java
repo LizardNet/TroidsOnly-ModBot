@@ -95,7 +95,16 @@ public class CryoHandler implements CommandHandler {
 
                         Miscellaneous.respond(event, "Cryo role set to " + cryoRole.toString());
                     } else {
+                        String cryoRole;
+
+                        if (config.getCryoRoleId() == null) {
+                            cryoRole = "(not set)";
+                        } else {
+                            cryoRole = event.getGuild().getRoleById(config.getCryoRoleId()).toString();
+                        }
+
                         Miscellaneous.respond(event, "Sorry, I didn't recognize that role name\n" +
+                            "Cryo role is currently set to: " + cryoRole + '\n' +
                             "Roles I recognize: " + Miscellaneous.getStringRepresentation(getAllRoles(event)) + '\n' +
                             "Syntax: `" + CMD_CFGCRYO + " [roleName]`");
                     }

@@ -91,7 +91,7 @@ class Listeners {
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
         LogListener logListener = new LogListener(wrapper, acl);
         CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
-        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService);
+        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService, fantasyString);
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());

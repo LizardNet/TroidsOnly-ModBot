@@ -56,17 +56,17 @@ import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
 class FilterCommandHandler implements CommandHandler {
-    private static final String CMD_FILTER = "filter";
-    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_FILTER);
+    static final String CMD_FILTER = "filter";
+    static final Set<String> COMMANDS = ImmutableSet.of(CMD_FILTER);
 
-    private static final String SCMD_ADD = "add"; //Syntax: filter add [action] [regex] [expiry] [comment]
-    private static final String SCMD_REM = "remove"; //Syntax: filter remove [regex]
-    private static final String SCMD_LIST = "list"; //Syntax: filter list
-    private static final Set<String> SUBCOMMANDS = ImmutableSet.of(SCMD_ADD, SCMD_REM, SCMD_LIST);
+    static final String SCMD_ADD = "add"; //Syntax: filter add [action] [regex] [expiry] [comment]
+    static final String SCMD_REM = "remove"; //Syntax: filter remove [regex]
+    static final String SCMD_LIST = "list"; //Syntax: filter list
+    static final Set<String> SUBCOMMANDS = ImmutableSet.of(SCMD_ADD, SCMD_REM, SCMD_LIST);
 
     static final String PERM_FILTER = "filter";
 
-    private static final String SYNTAX_HELP = "```\n" + CMD_FILTER + ' ' + SCMD_ADD + " [action] [regex] [expiry] [comment]\n" +
+    private static final String SYNTAX_HELP_1 = "```\n" + CMD_FILTER + ' ' + SCMD_ADD + " [action] [regex] [expiry] [comment]\n" +
         CMD_FILTER + ' ' + SCMD_REM + " [regex]\n" +
         CMD_FILTER + ' ' + SCMD_LIST + "\n```\n\n" +
         "Where [action] is one of these actions:\n" +
@@ -79,7 +79,9 @@ class FilterCommandHandler implements CommandHandler {
         "Note that the cryo must be manually removed by a mod; the bot won't remove it automatically (yet, anyway)\n" +
         "`delete-and-ban`: When the filter is tripped, **ban** the user.  " +
         "This mode should only be used in exceptional circumstances, as the bot will issue a ban on the first offense!\n\n" +
-        "[regex] is a Perl-Compatible Regular Expression in the format `/regex/flags`.  The regex portion may contain spaces.  " +
+        "It is *strongly recommended* that new filters be \"tested\" in `log-only` mode first, to avoid accidental actions.  Once a fiter has " +
+        "been tested for a while and does what it's supposed to, it can be removed and re-added with a more restrictive mode.";
+    private static final String SYNTAX_HELP_2 = "[regex] is a Perl-Compatible Regular Expression in the format `/regex/flags`.  The regex portion may contain spaces.  " +
         "The separator doesn't have to be `/`.\n\n" +
         "[expiry] is the time when the filter should remove itself, or 0 if it should remain until removed manually.  The value here can " +
         "either be the number of seconds until the filter removes itself, or a time specification in the format `1y2w3d4h5m6s`, meaning " +
@@ -255,7 +257,8 @@ class FilterCommandHandler implements CommandHandler {
                         break;
                 }
             } else {
-                Miscellaneous.respond(event, "Not enough arguments for this command.  Syntax:\n" + SYNTAX_HELP);
+                Miscellaneous.respond(event, "Not enough arguments for this command.  Syntax:\n" + SYNTAX_HELP_1);
+                Miscellaneous.respond(event, SYNTAX_HELP_2);
             }
         } else {
             Miscellaneous.respond(event, "No u!  (You don't have permission to do this.)");
