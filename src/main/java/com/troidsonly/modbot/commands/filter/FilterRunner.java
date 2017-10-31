@@ -34,10 +34,13 @@ package com.troidsonly.modbot.commands.filter;
 
 import java.awt.Color;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -62,7 +65,17 @@ public class FilterRunner implements Runnable {
 
     @Override
     public void run() {
-        for (RegexFilter filter : parent.getFilterRepository().getFilterList()) {
+        // For thread safety, make a copy of the filter list.  This is computationally more expensive, but means we
+        // don't have to block on synchronization for as long and minimizes the effect of multiple FilterRunner threads
+        // blocking each other.
+
+        List<RegexFilter> filterList;
+
+        synchronized (parent.getFilterRepository()) {
+            filterList = new ArrayList<>(parent.getFilterRepository().getFilterList());
+        }
+
+        for (RegexFilter filter : filterList) {
             Pattern pattern = filter.getPattern();
 
             PatternMatchCallable pmc = new PatternMatchCallable(pattern, message);
@@ -111,97 +124,61 @@ public class FilterRunner implements Runnable {
                             embedBuilder.addField("Action taken", "Logged only", false);
                             break;
                         case WARN_USER:
-                            try {
-                                PrivateChannel pc = member.getUser().openPrivateChannel().complete();
-                                pc.sendMessage("Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
-                                    "an automated message filter.  No action has been taken against you and your message has not been deleted; however, the moderators have been " +
-                                    "notified of this incident.\n" +
-                                    "Offending message: `" + message + "`\n" +
-                                    "Filter comment: " + filter.getComment()).complete();
-                            } catch (Exception e) {
-                                embedBuilder.addField("Action taken", "One or more action(s) failed; failed to warn user: `" + e.getMessage() + '`', false);
-                                break;
-                            }
-
-                            embedBuilder.addField("Action taken", "User warned, message not deleted", false);
+                            performActionsWithErrorHandling(embedBuilder, "User warned, message not deleted",
+                                () -> actionSendPrivateMessage(
+                                "Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
+                                "an automated message filter.  No action has been taken against you and your message has not been deleted; however, the moderators have been " +
+                                "notified of this incident.\n" +
+                                "Offending message: `" + message + "`\n" +
+                                "Filter comment: " + filter.getComment()));
                             break;
                         case DELETE_MESSAGE_SILENT:
-                            try {
-                                event.getMessage().delete().reason("Automatic message deletion due to message filter violation").complete();
-                            } catch (Exception e) {
-                                embedBuilder.addField("Action taken", "One or more action(s) failed; failed to delete message: `" + e.getMessage() + '`', false);
-                                break;
-                            }
-
-                            embedBuilder.addField("Action taken", "Message deleted without notifying user", false);
+                            performActionsWithErrorHandling(embedBuilder, "Message deleted without notifying user",
+                                this::actionDeleteMessage);
                             break;
                         case DELETE_MESSAGE_AND_WARN:
-                            try {
-                                event.getMessage().delete().reason("Automatic message deletion due to message filter violation").complete();
-                                PrivateChannel pc = member.getUser().openPrivateChannel().complete();
-                                pc.sendMessage("Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
+                            performActionsWithErrorHandling(embedBuilder, "Message deleted and user notified",
+                                this::actionDeleteMessage,
+                                () -> actionSendPrivateMessage(
+                                    "Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
                                     "an automated message filter.  The message has been automatically deleted and the moderators have been notified of this incident.\n" +
                                     "Offending message: `" + message + "`\n" +
-                                    "Filter comment: " + filter.getComment()).complete();
-                            } catch (Exception e) {
-                                embedBuilder.addField("Action taken", "One or more action(s) failed; failed to perform requested action: `" + e.getMessage() + '`', false);
-                                break;
-                            }
-
-                            embedBuilder.addField("Action taken", "Message deleted and user notified", false);
+                                    "Filter comment: " + filter.getComment()));
                             break;
                         case DELETE_MESSAGE_AND_KICK:
-                            try {
-                                PrivateChannel pc = member.getUser().openPrivateChannel().complete();
-                                pc.sendMessage("Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
+                            performActionsWithErrorHandling(embedBuilder, "Message deleted and sending user kicked with direct notification",
+                                this::actionDeleteMessage,
+                                () -> actionSendPrivateMessage(
+                                    "Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
                                     "an automated message filter.  The message has been automatically deleted and you have been automatically kicked from the server.\n" +
                                     "Offending message: `" + message + "`\n" +
                                     "Filter comment: " + filter.getComment() + '\n' +
                                     "Please take a moment to consider the comment before attempting to rejoin the server.  Remember that continued violation of server rules " +
-                                    "may result in a ban.").complete();
-                                event.getGuild().getController().kick(member).reason("Automatic kick due to message filter violation").complete();
-                                event.getMessage().delete().reason("Automatic message deletion due to message filter violation").complete();
-                            } catch (Exception e) {
-                                embedBuilder.addField("Action taken", "One or more action(s) failed; failed to perform requested action: `" + e.getMessage() + '`', false);
-                                break;
-                            }
-
-                            embedBuilder.addField("Action taken", "Message deleted and sending user kicked with direct notification", false);
+                                    "may result in a ban."),
+                                this::actionKickUser);
                             break;
                         case DELETE_MESSAGE_AND_CRYO:
-                            try {
-                                PrivateChannel pc = member.getUser().openPrivateChannel().complete();
-                                pc.sendMessage("Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
+                            performActionsWithErrorHandling(embedBuilder, "Message deleted and user cryo'd with direct notification",
+                                this::actionDeleteMessage,
+                                () -> actionSendPrivateMessage(
+                                    "Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
                                     "an automated message filter.  The message has been automatically deleted and you have been automatically quieted - though you may remain " +
                                     "on the server and continue to *read* messages, you may not participate or send messages for the time being.\n" +
                                     "Offending message: `" + message + "`\n" +
                                     "Filter comment: " + filter.getComment() + '\n' +
-                                    "Please contact a server moderator directly if you have any questions, or if you would like to enquire about when your quiet will be removed.").complete();
-                                event.getGuild().getController().addRolesToMember(member, event.getGuild().getRoleById(parent.getCryoHandler().getCryoRoleId())).reason("Automatic cryo due to message filter violation").complete();
-                                event.getMessage().delete().reason("Automatic message deletion due to message filter violation").complete();
-                            } catch (Exception e) {
-                                embedBuilder.addField("Action taken", "One or more action(s) failed; failed to perform requested action: `" + e.getMessage() + '`', false);
-                                break;
-                            }
-
-                            embedBuilder.addField("Action taken", "Message deleted and user cryo'd with direct notification", false);
+                                    "Please contact a server moderator directly if you have any questions, or if you would like to enquire about when your quiet will be removed."),
+                                this::actionCryoUser);
                             break;
                         case DELETE_MESSAGE_AND_BAN:
-                            try {
-                                PrivateChannel pc = member.getUser().openPrivateChannel().complete();
-                                pc.sendMessage("Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
+                            performActionsWithErrorHandling(embedBuilder, "Message deleted and user banned with direct notification",
+                                this::actionDeleteMessage,
+                                () -> actionSendPrivateMessage(
+                                    "Hello.  This message is to inform you that a message you sent to the " + event.getGuild().getName() + " server tripped " +
                                     "an automated message filter.  The message has been automatically deleted and you have been automatically banned from the server for violation " +
                                     "of the server rules.\n" +
                                     "Offending message: `" + message + "`\n" +
-                                    "Filter comment: " + filter.getComment()).complete();
-                                event.getGuild().getController().ban(member, 0, "Automatic ban due to message filter violation").reason("Automatic ban due to message filter violation").complete();
-                                event.getMessage().delete().reason("Automatic message deletion due to message filter violation").complete();
-                            } catch (Exception e) {
-                                embedBuilder.addField("Action taken", "One or more action(s) failed; failed to perform requested action: `" + e.getMessage() + '`', false);
-                                break;
-                            }
-
-                            embedBuilder.addField("Action taken", "Message deleted and user banned with direct notification", false);
+                                    "Filter comment: " + filter.getComment()),
+                                this::actionBanUser);
                             break;
                     }
 
@@ -210,6 +187,85 @@ public class FilterRunner implements Runnable {
 
                 parent.getLogger().sendToLog(embedBuilder.build(), member);
             }
+        }
+    }
+
+    private String actionSendPrivateMessage(String message) {
+        try {
+            PrivateChannel pc = member.getUser().openPrivateChannel().complete();
+            pc.sendMessage(message).complete();
+        } catch (Exception e) {
+            return "Failed to send private message: " + e.toString();
+        }
+
+        return null;
+    }
+
+    private String actionDeleteMessage() {
+        try {
+            event.getMessage().delete().reason("Automatic message deletion due to message filter violation").complete();
+        } catch (Exception e) {
+            return "Failed to delete message: " + e.toString();
+        }
+
+        return null;
+    }
+
+    private String actionKickUser() {
+        try {
+            event.getGuild().getController().kick(member).reason("Automatic kick due to message filter violation").complete();
+        } catch (Exception e) {
+            return "Failed to kick user: " + e.toString();
+        }
+
+        return null;
+    }
+
+    private String actionCryoUser() {
+        try {
+            event.getGuild().getController()
+                .addRolesToMember(member, event.getGuild().getRoleById(parent.getCryoHandler().getCryoRoleId()))
+                .reason("Automatic cryo due to message filter violation")
+                .complete();
+        } catch (Exception e) {
+            return "Failed to cryo user: " + e.toString();
+        }
+
+        return null;
+    }
+
+    private String actionBanUser() {
+        try {
+            event.getGuild().getController().ban(member, 0, "Automatic ban due to message filter violation").reason("Automatic ban due to message filter violation").complete();
+        } catch (Exception e) {
+            return "Failed to ban user: " + e.toString();
+        }
+
+        return null;
+    }
+
+    @SafeVarargs
+    private static void performActionsWithErrorHandling(EmbedBuilder embedBuilder, String outputIfSuccess, Supplier<String>... actions) {
+        List<String> retval = new ArrayList<>();
+
+        for (Supplier<String> action : actions) {
+            String output = action.get();
+
+            if (output != null) {
+                retval.add(output);
+            }
+        }
+
+        if (!retval.isEmpty()) {
+            StringBuilder sb = new StringBuilder("One or more actions **failed**:");
+
+            //noinspection SimplifyStreamApiCallChains
+            retval.stream()
+                .forEachOrdered(s -> sb.append("\n* ").append(s));
+
+            embedBuilder.addField("Action taken", sb.toString(), false);
+        } else {
+            embedBuilder.addField("Action taken", outputIfSuccess, false);
         }
     }
 }

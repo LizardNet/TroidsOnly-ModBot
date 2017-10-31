@@ -319,7 +319,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
         embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setColor(new Color(0x55AAFF));
+        embedBuilder.setColor(new Color(0x00CC00));
 
         sendToLog(embedBuilder.build(), event.getMember());
     }

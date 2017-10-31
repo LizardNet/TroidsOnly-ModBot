@@ -178,28 +178,30 @@ class FilterCommandHandler implements CommandHandler {
                                     return;
                                 }
 
-                                List<RegexFilter> filterList = parent.getFilterRepository().getFilterList();
+                                synchronized (parent.getFilterRepository()) {
+                                    List<RegexFilter> filterList = parent.getFilterRepository().getFilterList();
 
-                                if (filterList.contains(newFilter)) {
-                                    Miscellaneous.respond(event, "I already have a filter with that regular expression.  If you wish to change a filter's settings, please delete then re-add it.");
-                                    return;
+                                    if (filterList.contains(newFilter)) {
+                                        Miscellaneous.respond(event, "I already have a filter with that regular expression.  If you wish to change a filter's settings, please delete then re-add it.");
+                                        return;
+                                    }
+
+                                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                                    embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
+                                    embedBuilder.setTitle("Added a filter");
+                                    embedBuilder.setDescription('`' + newFilter.getRegex() + '`');
+                                    embedBuilder.addField("With comment", newFilter.getComment(), false);
+                                    embedBuilder.addField("Added at", Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getCreationTime()), false);
+                                    embedBuilder.addField("To expire", expiry == null ? "Never" : "at " + Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getExpiry()), false);
+                                    embedBuilder.addField("Performing action", newFilter.getAction().toString(), false);
+                                    embedBuilder.setTimestamp(Instant.now());
+                                    embedBuilder.setColor(new Color(0xFF8800));
+
+                                    parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
+
+                                    filterList.add(newFilter);
+                                    parent.sync();
                                 }
-
-                                EmbedBuilder embedBuilder = new EmbedBuilder();
-                                embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
-                                embedBuilder.setTitle("Added a filter");
-                                embedBuilder.setDescription('`' + newFilter.getRegex() + '`');
-                                embedBuilder.addField("With comment", newFilter.getComment(), false);
-                                embedBuilder.addField("Added at", Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getCreationTime()), false);
-                                embedBuilder.addField("To expire", expiry == null ? "Never" : "at " + Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getExpiry()), false);
-                                embedBuilder.addField("Performing action", newFilter.getAction().toString(), false);
-                                embedBuilder.setTimestamp(Instant.now());
-                                embedBuilder.setColor(new Color(0xFF8800));
-
-                                parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
-
-                                filterList.add(newFilter);
-                                parent.sync();
                                 Miscellaneous.respond(event, "Filter added!");
                             } else {
                                 Miscellaneous.respond(event, "Did not detect a valid regex specification.\n" +
@@ -217,43 +219,47 @@ class FilterCommandHandler implements CommandHandler {
                             Miscellaneous.respond(event, '`' + remainder + "` doesn't seem to be a valid regex specification.");
                         } else {
                             RegexFilter temp = new RegexFilter(remainder, "", 0, null, FilterAction.LOG_ONLY, "");
-                            List<RegexFilter> filterList = parent.getFilterRepository().getFilterList();
-                            int index = filterList.indexOf(temp);
+                            synchronized (parent.getFilterRepository()) {
+                                List<RegexFilter> filterList = parent.getFilterRepository().getFilterList();
+                                int index = filterList.indexOf(temp);
 
-                            if (index != -1) {
-                                RegexFilter oldFilter = filterList.get(index);
-                                filterList.remove(index);
+                                if (index != -1) {
+                                    RegexFilter oldFilter = filterList.get(index);
+                                    filterList.remove(index);
 
-                                EmbedBuilder embedBuilder = new EmbedBuilder();
-                                embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
-                                embedBuilder.setTitle("Filter removed");
-                                embedBuilder.setDescription('`' + remainder + '`');
-                                embedBuilder.addField("Performing action", oldFilter.getAction().toString(), false);
-                                embedBuilder.addField("Originally added by", event.getGuild().getMemberById(oldFilter.getCreatorUid()).getEffectiveName(), false);
-                                embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(oldFilter.getCreationTime()), false);
-                                embedBuilder.addField("Original comment", oldFilter.getComment(), false);
-                                embedBuilder.setTimestamp(Instant.now());
-                                embedBuilder.setColor(new Color(0xFF8800));
+                                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                                    embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
+                                    embedBuilder.setTitle("Filter removed");
+                                    embedBuilder.setDescription('`' + remainder + '`');
+                                    embedBuilder.addField("Performing action", oldFilter.getAction().toString(), false);
+                                    embedBuilder.addField("Originally added by", event.getGuild().getMemberById(oldFilter.getCreatorUid()).getEffectiveName(), false);
+                                    embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(oldFilter.getCreationTime()), false);
+                                    embedBuilder.addField("Original comment", oldFilter.getComment(), false);
+                                    embedBuilder.setTimestamp(Instant.now());
+                                    embedBuilder.setColor(new Color(0xFF8800));
 
-                                parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
+                                    parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
 
-                                Miscellaneous.respond(event, "Filter removed");
-                                parent.sync();
-                            } else {
-                                Miscellaneous.respond(event, "Could not find a matching filter to be removed.");
+                                    Miscellaneous.respond(event, "Filter removed");
+                                    parent.sync();
+                                } else {
+                                    Miscellaneous.respond(event, "Could not find a matching filter to be removed.");
+                                }
                             }
                         }
                         break;
                     case SCMD_LIST:
-                        List<RegexFilter> filters = parent.getFilterRepository().getFilterList();
+                        synchronized (parent.getFilterRepository()) {
+                            List<RegexFilter> filters = parent.getFilterRepository().getFilterList();
 
-                        StringBuilder output = new StringBuilder("I have the following filters saved:\n");
+                            StringBuilder output = new StringBuilder("I have the following filters saved:\n");
 
-                        filters.stream()
-                            .map(filter -> regexFilterToString(event, filter))
-                            .forEach(filter -> output.append("* ").append(filter).append("\n"));
+                            filters.stream()
+                                .map(filter -> regexFilterToString(event, filter))
+                                .forEach(filter -> output.append("* ").append(filter).append("\n"));
 
-                        event.getChannel().sendMessage(output.toString()).queue();
+                            event.getChannel().sendMessage(output.toString()).queue();
+                        }
                         break;
                 }
             } else {
