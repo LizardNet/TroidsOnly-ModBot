@@ -122,28 +122,30 @@ public class FilterListener extends ListenerAdapter {
 
         Collections.sort(filterList);
 
-        Iterator<RegexFilter> itr = filterList.iterator();
+        synchronized (filterRepository) {
+            Iterator<RegexFilter> itr = filterList.iterator();
 
-        while (itr.hasNext()) {
-            RegexFilter filter = itr.next();
+            while (itr.hasNext()) {
+                RegexFilter filter = itr.next();
 
-            if (filter.getExpiry() != null && filter.getExpiry() < Instant.now().getEpochSecond()) {
-                EmbedBuilder embedBuilder = new EmbedBuilder();
-                User addingUser = jda.getUserById(filter.getCreatorUid());
+                if (filter.getExpiry() != null && filter.getExpiry() < Instant.now().getEpochSecond()) {
+                    EmbedBuilder embedBuilder = new EmbedBuilder();
+                    User addingUser = jda.getUserById(filter.getCreatorUid());
 
-                embedBuilder.setTitle("Filter expired and automatically removed");
-                embedBuilder.setDescription('`' + filter.getRegex() + '`');
-                embedBuilder.addField("Performing action", filter.getAction().toString(), false);
-                embedBuilder.addField("Originally added by", addingUser.getName() + '#' + addingUser.getDiscriminator(), false);
-                embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
-                embedBuilder.addField("Original comment", filter.getComment(), false);
-                embedBuilder.setTimestamp(Instant.now());
-                embedBuilder.setColor(new Color(0xAAAAAA));
+                    embedBuilder.setTitle("Filter expired and automatically removed");
+                    embedBuilder.setDescription('`' + filter.getRegex() + '`');
+                    embedBuilder.addField("Performing action", filter.getAction().toString(), false);
+                    embedBuilder.addField("Originally added by", addingUser.getName() + '#' + addingUser.getDiscriminator(), false);
+                    embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
+                    embedBuilder.addField("Original comment", filter.getComment(), false);
+                    embedBuilder.setTimestamp(Instant.now());
+                    embedBuilder.setColor(new Color(0xAAAAAA));
 
-                logger.sendToLog(embedBuilder.build(), (User) null, null);
-                itr.remove();
-            } else {
-                break;
+                    logger.sendToLog(embedBuilder.build(), (User) null, null);
+                    itr.remove();
+                } else {
+                    break;
+                }
             }
         }
 
@@ -163,7 +165,7 @@ public class FilterListener extends ListenerAdapter {
             return;
         }
 
-        if (fullMessage.startsWith(fantasyString + FilterCommandHandler.CMD_FILTER) && acl.hasPermission(member, FilterCommandHandler.PERM_FILTER)) {
+        if ((fullMessage.startsWith(fantasyString + FilterCommandHandler.CMD_FILTER) || fullMessage.startsWith(FilterCommandHandler.CMD_FILTER)) && acl.hasPermission(member, FilterCommandHandler.PERM_FILTER)) {
             // The message appears to be a filter command from an authorized user; also ignore these outright
             return;
         }
