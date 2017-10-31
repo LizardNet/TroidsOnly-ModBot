@@ -285,6 +285,10 @@ public class BombAndTubesHandler implements CommandHandler {
                 URL url = urlList.get(random.nextInt(urlList.size()));
                 event.getMessage().getChannel().sendMessage(url.toString()).complete();
                 rateLimitCount.put(event.getChannel().getId(), rateLimitCount.get(event.getChannel().getId()) + 1);
+
+                if (what.equals("booty")) {
+                    event.getMessage().getChannel().sendMessage("Credit: <https://largepiratebooty.tumblr.com/>").queue();
+                }
             } else {
                 Miscellaneous.respond(event, "I have no " + what + "s to drop at the moment.  :(");
             }

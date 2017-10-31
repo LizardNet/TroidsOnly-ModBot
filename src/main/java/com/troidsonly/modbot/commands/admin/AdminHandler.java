@@ -37,6 +37,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
 import net.dv8tion.jda.core.entities.Game;
@@ -64,6 +65,9 @@ public class AdminHandler implements CommandHandler {
 
     private static final String AVATAR_DEFAULT = "default";
     private static final Set<String> SETAVATAR_SUBCMDS = ImmutableSet.of(AVATAR_DEFAULT);
+
+    private static final String REGEX_DESPOOF_STRING = "[^\\w]+";
+    private static final Pattern PATTERN_DESPOOF_STRING = Pattern.compile(REGEX_DESPOOF_STRING);
 
     private final AccessControl acl;
 
@@ -163,7 +167,10 @@ public class AdminHandler implements CommandHandler {
                 } else {
                     // take that, smartass!
                     String actor = '@' + event.getMember().getEffectiveName();
-                    if (E_PERMFAIL.equals(remainder) || (actor + ' ' + E_PERMFAIL).equals(remainder)) {
+                    String remainderDespoofed = PATTERN_DESPOOF_STRING.matcher(remainder).replaceAll("");
+
+                    if (PATTERN_DESPOOF_STRING.matcher(E_PERMFAIL).replaceAll("").equals(remainderDespoofed)
+                        || PATTERN_DESPOOF_STRING.matcher(actor + ' ' + E_PERMFAIL).replaceAll("").equals(remainderDespoofed)) {
                         event.getChannel().sendMessage("*throws sand in " + event.getMember().getAsMention() + "'s face*").complete();
                     } else {
                         Miscellaneous.respond(event, E_PERMFAIL);
