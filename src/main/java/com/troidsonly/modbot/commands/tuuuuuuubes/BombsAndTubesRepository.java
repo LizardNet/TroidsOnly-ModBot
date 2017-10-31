@@ -38,14 +38,28 @@ import java.util.List;
 
 class BombsAndTubesRepository {
     private List<URL> bombs;
+    private List<URL> booty;
 
     public static BombsAndTubesRepository empty() {
         BombsAndTubesRepository retval = new BombsAndTubesRepository();
         retval.bombs = new ArrayList<>();
+        retval.booty = new ArrayList<>();
         return retval;
     }
 
     public List<URL> getBombs() {
+        if (bombs == null ) {
+            bombs = new ArrayList<>();
+        }
+
         return bombs;
+    }
+
+    public List<URL> getBooty() {
+        if (booty == null) {
+            booty = new ArrayList<>();
+        }
+
+        return booty;
     }
 }
