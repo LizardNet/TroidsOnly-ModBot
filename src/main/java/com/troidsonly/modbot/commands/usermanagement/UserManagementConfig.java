@@ -30,15 +30,15 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.cryo;
+package com.troidsonly.modbot.commands.usermanagement;
 
 import java.util.Objects;
 
-class CryoConfig {
+class UserManagementConfig {
     private String cryoRoleId;
 
-    public static CryoConfig empty() {
-        CryoConfig retval = new CryoConfig();
+    public static UserManagementConfig empty() {
+        UserManagementConfig retval = new UserManagementConfig();
         retval.cryoRoleId = null;
         return retval;
     }

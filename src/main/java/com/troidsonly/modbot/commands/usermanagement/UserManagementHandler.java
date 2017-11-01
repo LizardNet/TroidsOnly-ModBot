@@ -30,7 +30,7 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.cryo;
+package com.troidsonly.modbot.commands.usermanagement;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,22 +47,22 @@ import com.troidsonly.modbot.persistence.PersistenceWrapper;
 import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
-public class CryoHandler implements CommandHandler {
+public class UserManagementHandler implements CommandHandler {
     private static final String CMD_CFGCRYO = "cfgcryo";
     private static final Set<String> COMMANDS = ImmutableSet.of(CMD_CFGCRYO);
 
     private static final String PERM_CFGCRYO = CMD_CFGCRYO;
 
     private final AccessControl acl;
-    private final PersistenceManager<CryoConfig> pm;
+    private final PersistenceManager<UserManagementConfig> pm;
 
-    private final CryoConfig config;
+    private final UserManagementConfig config;
 
-    public CryoHandler(AccessControl acl, PersistenceWrapper<?> wrapper) {
+    public UserManagementHandler(AccessControl acl, PersistenceWrapper<?> wrapper) {
         this.acl = acl;
-        pm = wrapper.getPersistenceManager("CryoConfig", CryoConfig.class);
+        pm = wrapper.getPersistenceManager("UserManagementConfig", UserManagementConfig.class);
 
-        config = pm.get().orElseGet(CryoConfig::empty);
+        config = pm.get().orElseGet(UserManagementConfig::empty);
     }
 
     @Override
