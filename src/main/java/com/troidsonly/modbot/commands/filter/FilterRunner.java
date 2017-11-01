@@ -224,7 +224,7 @@ public class FilterRunner implements Runnable {
     private String actionCryoUser() {
         try {
             event.getGuild().getController()
-                .addRolesToMember(member, event.getGuild().getRoleById(parent.getCryoHandler().getCryoRoleId()))
+                .addRolesToMember(member, event.getGuild().getRoleById(parent.getUserManagementListener().getCryoRoleId()))
                 .reason("Automatic cryo due to message filter violation")
                 .complete();
         } catch (Exception e) {
