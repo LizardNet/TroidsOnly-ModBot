@@ -30,7 +30,7 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.cryo;
+package com.troidsonly.modbot.commands.usermanagement;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,27 +42,18 @@ import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
 import com.troidsonly.modbot.hooks.CommandHandler;
-import com.troidsonly.modbot.persistence.PersistenceManager;
-import com.troidsonly.modbot.persistence.PersistenceWrapper;
-import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
-public class CryoHandler implements CommandHandler {
+class UserManagementHandler implements CommandHandler {
     private static final String CMD_CFGCRYO = "cfgcryo";
     private static final Set<String> COMMANDS = ImmutableSet.of(CMD_CFGCRYO);
 
     private static final String PERM_CFGCRYO = CMD_CFGCRYO;
 
-    private final AccessControl acl;
-    private final PersistenceManager<CryoConfig> pm;
+    private final UserManagementListener parent;
 
-    private final CryoConfig config;
-
-    public CryoHandler(AccessControl acl, PersistenceWrapper<?> wrapper) {
-        this.acl = acl;
-        pm = wrapper.getPersistenceManager("CryoConfig", CryoConfig.class);
-
-        config = pm.get().orElseGet(CryoConfig::empty);
+    public UserManagementHandler(UserManagementListener parent) {
+        this.parent = parent;
     }
 
     @Override
@@ -86,21 +77,21 @@ public class CryoHandler implements CommandHandler {
 
         switch (commands.get(0)) {
             case CMD_CFGCRYO:
-                if (acl.hasPermission(event.getMember(), PERM_CFGCRYO)) {
+                if (parent.getAcl().hasPermission(event.getMember(), PERM_CFGCRYO)) {
                     if (commands.size() == 2) {
                         Role cryoRole = event.getGuild().getRolesByName(commands.get(1), true).get(0);
 
-                        config.setCryoRoleId(cryoRole.getId());
-                        sync();
+                        parent.getConfig().setCryoRoleId(cryoRole.getId());
+                        parent.sync();
 
                         Miscellaneous.respond(event, "Cryo role set to " + cryoRole.toString());
                     } else {
                         String cryoRole;
 
-                        if (config.getCryoRoleId() == null) {
+                        if (parent.getConfig().getCryoRoleId() == null) {
                             cryoRole = "(not set)";
                         } else {
-                            cryoRole = event.getGuild().getRoleById(config.getCryoRoleId()).toString();
+                            cryoRole = event.getGuild().getRoleById(parent.getConfig().getCryoRoleId()).toString();
                         }
 
                         Miscellaneous.respond(event, "Sorry, I didn't recognize that role name\n" +
@@ -113,15 +104,6 @@ public class CryoHandler implements CommandHandler {
                 }
                 break;
         }
-    }
-
-    private synchronized void sync() {
-        pm.persist(config);
-        pm.sync();
-    }
-
-    public String getCryoRoleId() {
-        return config.getCryoRoleId();
     }
 
     private Set<String> getAllRoles(GuildMessageReceivedEvent event) {

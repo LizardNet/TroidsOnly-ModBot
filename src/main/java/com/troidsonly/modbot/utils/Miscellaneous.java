@@ -59,6 +59,8 @@ import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.requests.RestAction;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.troidsonly.modbot.ModBot;
 
@@ -204,5 +206,22 @@ public final class Miscellaneous {
 
     public static String unixEpochToRfc1123DateTimeString(long epochSeconds) {
         return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault()).format(DateTimeFormatter.RFC_1123_DATE_TIME);
+    }
+
+    public static ZonedDateTime processTimeSpec(String timespec) throws IllegalArgumentException {
+        PeriodFormatter formatter = new PeriodFormatterBuilder()
+            .appendYears().appendSuffix("y")
+            .appendWeeks().appendSuffix("w")
+            .appendDays().appendSuffix("d")
+            .appendHours().appendSuffix("h")
+            .appendMinutes().appendSuffix("m")
+            .appendSeconds().appendSuffix("s")
+            .toFormatter();
+
+        ZonedDateTime retval = ZonedDateTime.now().plusSeconds(formatter.parsePeriod(timespec).toDurationFrom(org.joda.time.Instant.now()).getStandardSeconds());
+        if (retval.getYear() > 9999) {
+            throw new IllegalArgumentException("Specified time is too far in the future (past year 9999). Go away.");
+        }
+        return retval;
     }
 }

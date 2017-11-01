@@ -39,7 +39,6 @@ package com.troidsonly.modbot.commands.filter;
 
 import java.awt.Color;
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -49,8 +48,6 @@ import java.util.regex.Matcher;
 import com.google.common.collect.ImmutableSet;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import org.joda.time.format.PeriodFormatter;
-import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.utils.Miscellaneous;
@@ -153,7 +150,7 @@ class FilterCommandHandler implements CommandHandler {
                                     }
                                 } catch (NumberFormatException e) {
                                     try {
-                                        expiry = processTimeSpec(args[0]).toInstant().getEpochSecond();
+                                        expiry = Miscellaneous.processTimeSpec(args[0]).toInstant().getEpochSecond();
                                     } catch (Exception e1) {
                                         Miscellaneous.respond(event, "Could not process time spec \"" + args[0] + "\": " + e.toString());
                                         return;
@@ -298,22 +295,4 @@ class FilterCommandHandler implements CommandHandler {
 
         return sb.toString();
     }
-
-    private ZonedDateTime processTimeSpec(String timespec) throws IllegalArgumentException {
-        PeriodFormatter formatter = new PeriodFormatterBuilder()
-            .appendYears().appendSuffix("y")
-            .appendWeeks().appendSuffix("w")
-            .appendDays().appendSuffix("d")
-            .appendHours().appendSuffix("h")
-            .appendMinutes().appendSuffix("m")
-            .appendSeconds().appendSuffix("s")
-            .toFormatter();
-
-        ZonedDateTime retval = ZonedDateTime.now().plusSeconds(formatter.parsePeriod(timespec).toDurationFrom(org.joda.time.Instant.now()).getStandardSeconds());
-        if (retval.getYear() > 9999) {
-            throw new IllegalArgumentException("Specified time is too far in the future (past year 9999). Go away.");
-        }
-        return retval;
-    }
-
 }
