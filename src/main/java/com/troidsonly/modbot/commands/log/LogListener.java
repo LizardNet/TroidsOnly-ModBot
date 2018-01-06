@@ -33,14 +33,24 @@
 package com.troidsonly.modbot.commands.log;
 
 import java.awt.Color;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
+import net.dv8tion.jda.core.MessageBuilder;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
@@ -62,6 +72,11 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
+import com.troidsonly.modbot.commands.log.userhistory.ChannelHistory;
+import com.troidsonly.modbot.commands.log.userhistory.MessageRecord;
+import com.troidsonly.modbot.commands.log.userhistory.NoHistoryException;
+import com.troidsonly.modbot.commands.log.userhistory.UserHistory;
+import com.troidsonly.modbot.commands.log.userhistory.UserInfo;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.persistence.PersistenceManager;
 import com.troidsonly.modbot.persistence.PersistenceWrapper;
@@ -142,21 +157,37 @@ public class LogListener extends ListenerAdapter {
         sendToLog(message, logUser.getUser(), logChannel);
     }
 
+    private TextChannel selectLogTarget(User logUser, TextChannel logChannel) {
+        TextChannel target;
+
+        if (logUser != null && config.getUserIdToLogChannelIdFilters().containsKey(logUser.getId())) {
+            target = jda.getTextChannelById(config.getUserIdToLogChannelIdFilters().get(logUser.getId()));
+        } else if (logChannel != null && config.getChannelIdToLogChannelIdFilters().containsKey(logChannel.getId())) {
+            target = jda.getTextChannelById(config.getChannelIdToLogChannelIdFilters().get(logChannel.getId()));
+        } else {
+            target = jda.getTextChannelById(config.getPrimaryLogChannelId());
+        }
+
+        return target;
+    }
+
     public void sendToLog(MessageEmbed message, User logUser, TextChannel logChannel) {
         Objects.requireNonNull(message);
 
         if (config.getEnabled() && jda != null) {
-            TextChannel target;
-
-            if (logUser != null && config.getUserIdToLogChannelIdFilters().containsKey(logUser.getId())) {
-                target = jda.getTextChannelById(config.getUserIdToLogChannelIdFilters().get(logUser.getId()));
-            } else if (logChannel != null && config.getChannelIdToLogChannelIdFilters().containsKey(logChannel.getId())) {
-                target = jda.getTextChannelById(config.getChannelIdToLogChannelIdFilters().get(logChannel.getId()));
-            } else {
-                target = jda.getTextChannelById(config.getPrimaryLogChannelId());
-            }
+            TextChannel target = selectLogTarget(logUser, logChannel);
 
             target.sendMessage(message).queue();
+        }
+    }
+
+    public void sendFileToLog(Path file, Message message, User logUser, TextChannel logChannel) {
+        Objects.requireNonNull(file);
+
+        if (config.getEnabled() && jda != null) {
+            TextChannel target = selectLogTarget(logUser, logChannel);
+
+            target.sendFile(file.toFile(), message).complete();
         }
     }
 
@@ -343,6 +374,15 @@ public class LogListener extends ListenerAdapter {
     @Override
     public void onGuildBan(GuildBanEvent event) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
+        MessageBuilder dumpLogMessage = new MessageBuilder();
+        Path dumpFilePath = null;
+
+        try {
+            dumpFilePath = dumpMemberMessageHistory(event.getUser(), event.getGuild());
+            dumpLogMessage.append("Message history for banned user:");
+        } catch (Exception e) {
+            embedBuilder.addField("Failed to generate message dump", e.toString(), false);
+        }
 
         embedBuilder.setTitle("Ban set against above user");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
@@ -350,6 +390,15 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setColor(new Color(0xCC0000));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
+
+        if (dumpFilePath != null) {
+            sendFileToLog(dumpFilePath, dumpLogMessage.build(), event.getUser(), null);
+            try {
+                Files.deleteIfExists(dumpFilePath);
+            } catch (IOException e) {
+                // Oh well
+            }
+        }
     }
 
     @Override
@@ -382,5 +431,49 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setColor(new Color(0xCC0000));
 
         sendToLog(embedBuilder.build(), (User) null, event.getChannel());
+    }
+
+    private Path dumpMemberMessageHistory(User user, Guild guild) throws NoHistoryException, IOException {
+        UserInfo userInfo = new UserInfo(user.getName() + '#' + user.getDiscriminator(),
+            user.getId());
+
+        List<TextChannel> channelList = Miscellaneous.asSortedList(guild.getTextChannels());
+        List<ChannelHistory> channelHistories = new ArrayList<>();
+
+        for (TextChannel channel : channelList) {
+            List<MessageRecord> messageRecords = new ArrayList<>();
+            List<Message> messages = messageCache.getMessagesByChannel(channel).stream()
+                .filter(message -> message.getAuthor().equals(user))
+                .collect(Collectors.toList());
+
+            for (Message message : messages) {
+                String fullMessage = Miscellaneous.getFullMessage(message);
+
+                if (!fullMessage.isEmpty()) {
+                    messageRecords.add(new MessageRecord(fullMessage, message.getRawContent(), message.getCreationTime(), message.getId()));
+                }
+            }
+
+            if (!messageRecords.isEmpty()) {
+                channelHistories.add(new ChannelHistory(channel.getName(), channel.getId(), Miscellaneous.asSortedList(messageRecords)));
+            }
+        }
+
+        if (channelHistories.isEmpty()) {
+            throw new NoHistoryException();
+        }
+
+        UserHistory userHistory = new UserHistory(userInfo, channelHistories);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String output = gson.toJson(userHistory, UserHistory.class);
+
+        Path outputFile = Files.createTempFile("memberMessageHistory", ".json");
+
+        try (PrintStream ps = new PrintStream(Files.newOutputStream(outputFile, StandardOpenOption.WRITE))) {
+            ps.println(output);
+        }
+
+        return outputFile;
     }
 }

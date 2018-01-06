@@ -32,6 +32,7 @@
 
 package com.troidsonly.modbot.commands.log;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
@@ -88,5 +89,9 @@ class MessageCache {
         return messageCache.getUnchecked(channel).stream()
             .filter(message -> message.getId().equals(messageId))
             .findFirst();
+    }
+
+    public List<Message> getMessagesByChannel(TextChannel channel) {
+        return new ArrayList<>(messageCache.getUnchecked(channel));
     }
 }
