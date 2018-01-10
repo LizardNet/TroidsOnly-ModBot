@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -30,50 +30,31 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.log.userhistory;
+package com.troidsonly.modbot.commands.dumpmessages;
 
-import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Objects;
 
-import com.troidsonly.modbot.utils.Miscellaneous;
+public class ChannelHistory {
+    private String channelName;
+    private String channelId;
+    private List<MessageRecord> messageRecords;
 
-public class MessageRecord implements Comparable<MessageRecord> {
-    private String messageText;
-    private String rawMessageText;
-    private String rfc1123Timestamp;
-    private long unixEpochTimestamp;
-    private String messageId;
-
-    public MessageRecord(String messageText, String rawMessageText, OffsetDateTime messageTime, String messageId) {
-        this.messageText = Objects.requireNonNull(messageText);
-        this.rawMessageText = Objects.requireNonNull(rawMessageText);
-        unixEpochTimestamp = Objects.requireNonNull(messageTime).toEpochSecond();
-        rfc1123Timestamp = Miscellaneous.unixEpochToRfc1123DateTimeString(unixEpochTimestamp);
-        this.messageId = Objects.requireNonNull(messageId);
+    public ChannelHistory(String channelName, String channelId, List<MessageRecord> messageRecords) {
+        this.channelName = Objects.requireNonNull(channelName);
+        this.channelId = Objects.requireNonNull(channelId);
+        this.messageRecords = Objects.requireNonNull(messageRecords);
     }
 
-    public String getMessageText() {
-        return messageText;
+    public String getChannelName() {
+        return channelName;
     }
 
-    public String getRawMessageText() {
-        return rawMessageText;
+    public String getChannelId() {
+        return channelId;
     }
 
-    public String getRfc1123Timestamp() {
-        return rfc1123Timestamp;
-    }
-
-    public long getUnixEpochTimestamp() {
-        return unixEpochTimestamp;
-    }
-
-    public String getMessageId() {
-        return messageId;
-    }
-
-    @Override
-    public int compareTo(MessageRecord o) {
-        return Long.compare(this.unixEpochTimestamp, o.unixEpochTimestamp);
+    public List<MessageRecord> getMessageRecords() {
+        return messageRecords;
     }
 }

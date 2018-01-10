@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -30,25 +30,25 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.log.userhistory;
+package com.troidsonly.modbot.commands.dumpmessages;
 
-public class NoHistoryException extends Exception {
-    public NoHistoryException() {
+import java.util.List;
+import java.util.Objects;
+
+public class UserHistory {
+    private UserInfo user;
+    private List<ChannelHistory> channelHistories;
+
+    public UserHistory(UserInfo user, List<ChannelHistory> channelHistories) {
+        this.user = Objects.requireNonNull(user);
+        this.channelHistories = Objects.requireNonNull(channelHistories);
     }
 
-    public NoHistoryException(String message) {
-        super(message);
+    public UserInfo getUser() {
+        return user;
     }
 
-    public NoHistoryException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public NoHistoryException(Throwable cause) {
-        super(cause);
-    }
-
-    public NoHistoryException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+    public List<ChannelHistory> getChannelHistories() {
+        return channelHistories;
     }
 }

@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -44,7 +44,7 @@ import com.google.common.collect.EvictingQueue;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 
-class MessageCache {
+public class MessageCache {
     private static final int QUEUE_SIZE = 1000;
 
     private final LoadingCache<TextChannel, Queue<Message>> messageCache;

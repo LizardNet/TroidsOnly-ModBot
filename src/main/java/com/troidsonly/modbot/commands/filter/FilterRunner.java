@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -105,6 +105,7 @@ public class FilterRunner implements Runnable {
                 embedBuilder.setAuthor(Miscellaneous.qualifyName(member), null, member.getUser().getAvatarUrl());
                 embedBuilder.setDescription('`' + filter.getRegex() + '`');
                 embedBuilder.setTimestamp(Instant.now());
+                embedBuilder.setFooter(getClass().getSimpleName(), null);
                 embedBuilder.addField("Offending message", message, false);
                 embedBuilder.addField("Tripped filter comment", filter.getComment(), false);
                 embedBuilder.addField("Tripped filter action", filter.getAction().toString(), false);

@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -195,6 +195,7 @@ class FilterCommandHandler implements CommandHandler {
                                     embedBuilder.addField("To expire", expiry == null ? "Never" : "at " + Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getExpiry()), false);
                                     embedBuilder.addField("Performing action", newFilter.getAction().toString(), false);
                                     embedBuilder.setTimestamp(Instant.now());
+                                    embedBuilder.setFooter(getClass().getSimpleName(), null);
                                     embedBuilder.setColor(new Color(0xFF8800));
 
                                     parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
@@ -236,6 +237,7 @@ class FilterCommandHandler implements CommandHandler {
                                     embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(oldFilter.getCreationTime()), false);
                                     embedBuilder.addField("Original comment", oldFilter.getComment(), false);
                                     embedBuilder.setTimestamp(Instant.now());
+                                    embedBuilder.setFooter(getClass().getSimpleName(), null);
                                     embedBuilder.setColor(new Color(0xFF8800));
 
                                     parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());

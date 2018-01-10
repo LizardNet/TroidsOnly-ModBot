@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -47,11 +47,12 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import com.troidsonly.modbot.commands.cryo.CryoHandler;
-import com.troidsonly.modbot.commands.filter.FilterListener;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import com.troidsonly.modbot.commands.admin.AdminHandler;
+import com.troidsonly.modbot.commands.cryo.CryoHandler;
+import com.troidsonly.modbot.commands.dumpmessages.DumpMessagesHandler;
+import com.troidsonly.modbot.commands.filter.FilterListener;
 import com.troidsonly.modbot.commands.log.LogListener;
 import com.troidsonly.modbot.commands.tuuuuuuubes.BombAndTubesHandler;
 import com.troidsonly.modbot.hooks.CommandHandler;
@@ -100,6 +101,7 @@ class Listeners {
         handlers.add(logListener.getCommandHandler());
         handlers.add(cryoHandler);
         handlers.add(filterListener.getCommandHandler());
+        handlers.add(new DumpMessagesHandler(acl, logListener));
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));

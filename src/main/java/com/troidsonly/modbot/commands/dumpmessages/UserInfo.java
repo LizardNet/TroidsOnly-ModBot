@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -30,25 +30,24 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.log.userhistory;
+package com.troidsonly.modbot.commands.dumpmessages;
 
-import java.util.List;
 import java.util.Objects;
 
-public class UserHistory {
-    private UserInfo user;
-    private List<ChannelHistory> channelHistories;
+public class UserInfo {
+    private String userName;
+    private String userId;
 
-    public UserHistory(UserInfo user, List<ChannelHistory> channelHistories) {
-        this.user = Objects.requireNonNull(user);
-        this.channelHistories = Objects.requireNonNull(channelHistories);
+    public UserInfo(String userName, String userId) {
+        this.userName = Objects.requireNonNull(userName);
+        this.userId = Objects.requireNonNull(userId);
     }
 
-    public UserInfo getUser() {
-        return user;
+    public String getUserName() {
+        return userName;
     }
 
-    public List<ChannelHistory> getChannelHistories() {
-        return channelHistories;
+    public String getUserId() {
+        return userId;
     }
 }

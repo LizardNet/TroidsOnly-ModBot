@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -34,23 +34,17 @@ package com.troidsonly.modbot.commands.log;
 
 import java.awt.Color;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
@@ -72,11 +66,7 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
 import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
-import com.troidsonly.modbot.commands.log.userhistory.ChannelHistory;
-import com.troidsonly.modbot.commands.log.userhistory.MessageRecord;
-import com.troidsonly.modbot.commands.log.userhistory.NoHistoryException;
-import com.troidsonly.modbot.commands.log.userhistory.UserHistory;
-import com.troidsonly.modbot.commands.log.userhistory.UserInfo;
+import com.troidsonly.modbot.commands.dumpmessages.MessageHistoryDumper;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.persistence.PersistenceManager;
 import com.troidsonly.modbot.persistence.PersistenceWrapper;
@@ -232,6 +222,7 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.addField("Message ID", newMessage.getId(), false);
             embedBuilder.setColor(new Color(0x55AAFF));
             embedBuilder.setTimestamp(Instant.now());
+            embedBuilder.setFooter(getClass().getSimpleName(), null);
 
             messageCache.updateMessage(newMessage);
 
@@ -265,6 +256,7 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.addField("Message ID", event.getMessageId(), false);
             embedBuilder.setColor(new Color(0xFF8800));
             embedBuilder.setTimestamp(Instant.now());
+            embedBuilder.setFooter(getClass().getSimpleName(), null);
 
             sendToLog(embedBuilder.build(), member, event.getChannel());
         }
@@ -277,6 +269,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("User joined the server");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0x00CC00));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -289,6 +282,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("User left the server");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0xFFFF00));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -312,6 +306,7 @@ public class LogListener extends ListenerAdapter {
 
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0x55AAFF));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -334,6 +329,7 @@ public class LogListener extends ListenerAdapter {
         }
 
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0x55AAFF));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
@@ -350,6 +346,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0x00CC00));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -366,6 +363,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0xFF8800));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -378,7 +376,7 @@ public class LogListener extends ListenerAdapter {
         Path dumpFilePath = null;
 
         try {
-            dumpFilePath = dumpMemberMessageHistory(event.getUser(), event.getGuild());
+            dumpFilePath = MessageHistoryDumper.dumpMemberMessageHistory(event.getUser(), event.getGuild(), messageCache);
             dumpLogMessage.append("Message history for banned user:");
         } catch (Exception e) {
             embedBuilder.addField("Failed to generate message dump", e.toString(), false);
@@ -387,6 +385,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("Ban set against above user");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0xCC0000));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
@@ -408,6 +407,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("Ban against above user rescinded");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0xCC00CC));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
@@ -428,52 +428,13 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("Message bulk delete logged in channel #" + event.getChannel().getName());
         embedBuilder.addField("Affected users", Miscellaneous.getStringRepresentation(targeted), false);
         embedBuilder.setTimestamp(Instant.now());
+        embedBuilder.setFooter(getClass().getSimpleName(), null);
         embedBuilder.setColor(new Color(0xCC0000));
 
         sendToLog(embedBuilder.build(), (User) null, event.getChannel());
     }
 
-    private Path dumpMemberMessageHistory(User user, Guild guild) throws NoHistoryException, IOException {
-        UserInfo userInfo = new UserInfo(user.getName() + '#' + user.getDiscriminator(),
-            user.getId());
-
-        List<TextChannel> channelList = Miscellaneous.asSortedList(guild.getTextChannels());
-        List<ChannelHistory> channelHistories = new ArrayList<>();
-
-        for (TextChannel channel : channelList) {
-            List<MessageRecord> messageRecords = new ArrayList<>();
-            List<Message> messages = messageCache.getMessagesByChannel(channel).stream()
-                .filter(message -> message.getAuthor().equals(user))
-                .collect(Collectors.toList());
-
-            for (Message message : messages) {
-                String fullMessage = Miscellaneous.getFullMessage(message);
-
-                if (!fullMessage.isEmpty()) {
-                    messageRecords.add(new MessageRecord(fullMessage, message.getRawContent(), message.getCreationTime(), message.getId()));
-                }
-            }
-
-            if (!messageRecords.isEmpty()) {
-                channelHistories.add(new ChannelHistory(channel.getName(), channel.getId(), Miscellaneous.asSortedList(messageRecords)));
-            }
-        }
-
-        if (channelHistories.isEmpty()) {
-            throw new NoHistoryException();
-        }
-
-        UserHistory userHistory = new UserHistory(userInfo, channelHistories);
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String output = gson.toJson(userHistory, UserHistory.class);
-
-        Path outputFile = Files.createTempFile("memberMessageHistory", ".json");
-
-        try (PrintStream ps = new PrintStream(Files.newOutputStream(outputFile, StandardOpenOption.WRITE))) {
-            ps.println(output);
-        }
-
-        return outputFile;
+    public MessageCache getMessageCache() {
+        return messageCache;
     }
 }
