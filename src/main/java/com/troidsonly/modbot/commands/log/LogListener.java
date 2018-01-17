@@ -221,8 +221,7 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.addField("New Message", Miscellaneous.getFullMessage(newMessage), false);
             embedBuilder.addField("Message ID", newMessage.getId(), false);
             embedBuilder.setColor(new Color(0x55AAFF));
-            embedBuilder.setTimestamp(Instant.now());
-            embedBuilder.setFooter(getClass().getSimpleName(), null);
+            embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
 
             messageCache.updateMessage(newMessage);
 
@@ -255,8 +254,7 @@ public class LogListener extends ListenerAdapter {
 
             embedBuilder.addField("Message ID", event.getMessageId(), false);
             embedBuilder.setColor(new Color(0xFF8800));
-            embedBuilder.setTimestamp(Instant.now());
-            embedBuilder.setFooter(getClass().getSimpleName(), null);
+            embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
 
             sendToLog(embedBuilder.build(), member, event.getChannel());
         }
@@ -268,8 +266,7 @@ public class LogListener extends ListenerAdapter {
 
         embedBuilder.setTitle("User joined the server");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0x00CC00));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -281,8 +278,7 @@ public class LogListener extends ListenerAdapter {
 
         embedBuilder.setTitle("User left the server");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0xFFFF00));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -305,8 +301,7 @@ public class LogListener extends ListenerAdapter {
         }
 
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0x55AAFF));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -328,8 +323,7 @@ public class LogListener extends ListenerAdapter {
             embedBuilder.addField("Attention:", "Discriminator changed!", false);
         }
 
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0x55AAFF));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
@@ -345,8 +339,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("User granted role(s)");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0x00CC00));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -362,8 +355,7 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("Role(s) revoked from user");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setDescription(Miscellaneous.getStringRepresentation(roles));
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0xFF8800));
 
         sendToLog(embedBuilder.build(), event.getMember());
@@ -384,8 +376,7 @@ public class LogListener extends ListenerAdapter {
 
         embedBuilder.setTitle("Ban set against above user");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0xCC0000));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
@@ -406,8 +397,7 @@ public class LogListener extends ListenerAdapter {
 
         embedBuilder.setTitle("Ban against above user rescinded");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getUser()), null, event.getUser().getAvatarUrl());
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0xCC00CC));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);
@@ -427,8 +417,7 @@ public class LogListener extends ListenerAdapter {
 
         embedBuilder.setTitle("Message bulk delete logged in channel #" + event.getChannel().getName());
         embedBuilder.addField("Affected users", Miscellaneous.getStringRepresentation(targeted), false);
-        embedBuilder.setTimestamp(Instant.now());
-        embedBuilder.setFooter(getClass().getSimpleName(), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0xCC0000));
 
         sendToLog(embedBuilder.build(), (User) null, event.getChannel());

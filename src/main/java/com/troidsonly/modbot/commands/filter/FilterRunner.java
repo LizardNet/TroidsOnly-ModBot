@@ -104,8 +104,7 @@ public class FilterRunner implements Runnable {
                 // We have a match!!
                 embedBuilder.setAuthor(Miscellaneous.qualifyName(member), null, member.getUser().getAvatarUrl());
                 embedBuilder.setDescription('`' + filter.getRegex() + '`');
-                embedBuilder.setTimestamp(Instant.now());
-                embedBuilder.setFooter(getClass().getSimpleName(), null);
+                embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
                 embedBuilder.addField("Offending message", message, false);
                 embedBuilder.addField("Tripped filter comment", filter.getComment(), false);
                 embedBuilder.addField("Tripped filter action", filter.getAction().toString(), false);

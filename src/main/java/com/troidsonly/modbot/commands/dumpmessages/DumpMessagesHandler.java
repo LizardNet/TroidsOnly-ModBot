@@ -51,6 +51,7 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
+import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.commands.log.LogListener;
 import com.troidsonly.modbot.commands.log.MessageCache;
 import com.troidsonly.modbot.hooks.CommandHandler;
@@ -134,7 +135,7 @@ public class DumpMessagesHandler implements CommandHandler {
                     }
                 }
             } else {
-                Miscellaneous.respond(event, "Adam has not authorized you to use this command.");
+                Miscellaneous.respond(event, ModBot.PERMFAIL_MESSAGE);
             }
         }
     }

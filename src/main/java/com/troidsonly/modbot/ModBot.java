@@ -57,6 +57,7 @@ import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class ModBot {
     public static final String PROJECT_NAME = "TroidsOnly/ModBot";
+    public static final String PERMFAIL_MESSAGE = "Adam does not authorize you to use this command."; // TODO: Make this configurable, or use a localization file system
     private final JDABuilder botBuilder;
 
     public ModBot(Properties properties) {

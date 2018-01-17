@@ -47,6 +47,7 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
+import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.persistence.PersistenceManager;
 import com.troidsonly.modbot.persistence.PersistenceWrapper;
@@ -252,7 +253,7 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
                         "acl list {[roleName]}\n```");
                 }
             } else {
-                Miscellaneous.respond(event, "No u!  (You don't have permission to do this.)");
+                Miscellaneous.respond(event, ModBot.PERMFAIL_MESSAGE);
             }
         }
 

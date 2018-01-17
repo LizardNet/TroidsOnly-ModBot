@@ -45,12 +45,13 @@ import net.dv8tion.jda.core.entities.Icon;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
+import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
 public class AdminHandler implements CommandHandler {
-    public static final String E_PERMFAIL = "No u!  (You don't have permission to do this.)";
+    public static final String E_PERMFAIL = ModBot.PERMFAIL_MESSAGE;
 
     private static final String CMD_QUIT = "quit";
     private static final String CMD_CHGNICK = "setnick";

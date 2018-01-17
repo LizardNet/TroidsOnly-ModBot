@@ -138,8 +138,7 @@ public class FilterListener extends ListenerAdapter {
                     embedBuilder.addField("Originally added by", addingUser.getName() + '#' + addingUser.getDiscriminator(), false);
                     embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
                     embedBuilder.addField("Original comment", filter.getComment(), false);
-                    embedBuilder.setTimestamp(Instant.now());
-                    embedBuilder.setFooter(getClass().getSimpleName(), null);
+                    embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
                     embedBuilder.setColor(new Color(0xAAAAAA));
 
                     logger.sendToLog(embedBuilder.build(), (User) null, null);

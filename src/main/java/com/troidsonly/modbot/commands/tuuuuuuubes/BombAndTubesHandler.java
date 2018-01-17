@@ -52,6 +52,7 @@ import com.google.common.collect.ImmutableSet;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 
+import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 import com.troidsonly.modbot.hooks.CommandHandler;
@@ -261,7 +262,7 @@ public class BombAndTubesHandler implements CommandHandler {
                         break;
                 }
             } else {
-                Miscellaneous.respond(event, "No u!  (You don't have permission to do this.)");
+                Miscellaneous.respond(event, ModBot.PERMFAIL_MESSAGE);
             }
         } else {
             rateLimitEnd.putIfAbsent(event.getChannel().getId(), 0L);

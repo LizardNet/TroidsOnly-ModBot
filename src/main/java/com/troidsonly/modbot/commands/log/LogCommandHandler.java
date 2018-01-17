@@ -46,6 +46,7 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 
+import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
@@ -70,7 +71,7 @@ class LogCommandHandler implements CommandHandler {
 
     private static final String PERM_LOG_CONTROL = "logcon";
     private static final String PERM_MK_LOG_ENTRY = "mklog";
-    private static final String E_PERMFAIL = "No u!  (You don't have permission to do this.)";
+    private static final String E_PERMFAIL = ModBot.PERMFAIL_MESSAGE;
 
     private final LogListener parent;
 
@@ -116,8 +117,7 @@ class LogCommandHandler implements CommandHandler {
                             embedBuilder.setTitle("Log annotation");
                             embedBuilder.setDescription(logMessage);
                             embedBuilder.setColor(new Color(0xAAAAAA));
-                            embedBuilder.setTimestamp(Instant.now());
-                            embedBuilder.setFooter(event.getMember().getEffectiveName(), event.getAuthor().getAvatarUrl());
+                            embedBuilder.setFooter(event.getMember().getEffectiveName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), event.getAuthor().getAvatarUrl());
 
                             parent.sendToLog(embedBuilder.build());
                             Miscellaneous.respond(event, "Logged your message.");

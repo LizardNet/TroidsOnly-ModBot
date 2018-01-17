@@ -52,6 +52,7 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
+import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
@@ -194,8 +195,7 @@ class FilterCommandHandler implements CommandHandler {
                                     embedBuilder.addField("Added at", Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getCreationTime()), false);
                                     embedBuilder.addField("To expire", expiry == null ? "Never" : "at " + Miscellaneous.unixEpochToRfc1123DateTimeString(newFilter.getExpiry()), false);
                                     embedBuilder.addField("Performing action", newFilter.getAction().toString(), false);
-                                    embedBuilder.setTimestamp(Instant.now());
-                                    embedBuilder.setFooter(getClass().getSimpleName(), null);
+                                    embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
                                     embedBuilder.setColor(new Color(0xFF8800));
 
                                     parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
@@ -236,8 +236,7 @@ class FilterCommandHandler implements CommandHandler {
                                     embedBuilder.addField("Originally added by", event.getGuild().getMemberById(oldFilter.getCreatorUid()).getEffectiveName(), false);
                                     embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(oldFilter.getCreationTime()), false);
                                     embedBuilder.addField("Original comment", oldFilter.getComment(), false);
-                                    embedBuilder.setTimestamp(Instant.now());
-                                    embedBuilder.setFooter(getClass().getSimpleName(), null);
+                                    embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
                                     embedBuilder.setColor(new Color(0xFF8800));
 
                                     parent.getLogger().sendToLog(embedBuilder.build(), event.getMember());
@@ -269,7 +268,7 @@ class FilterCommandHandler implements CommandHandler {
                 Miscellaneous.respond(event, SYNTAX_HELP_2);
             }
         } else {
-            Miscellaneous.respond(event, "No u!  (You don't have permission to do this.)");
+            Miscellaneous.respond(event, ModBot.PERMFAIL_MESSAGE);
         }
     }
 
