@@ -31,3 +31,7 @@ authToken=
 
 # tubesDirectory: String - The name (possibly an absolute path to) the folder containing tubes.  Defaults to tubes.
 #tubesDirectory=tubes
+
+# bootyEnabled: Boolean - Whether or not the !booty command is to be enabled.  Set to "true" to enable (the default);
+# any other value to disable.
+#bootyEnabled=true

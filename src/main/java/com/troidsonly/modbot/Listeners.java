@@ -84,6 +84,7 @@ class Listeners {
         String[] ownerUids = properties.getProperty("ownerUid", "").split(",");
         String statefileName = properties.getProperty("statefileName", "state.json");
         String tubesDirectory = properties.getProperty("tubesDirectory", "tubes");
+        boolean bootyEnabled = Boolean.parseBoolean(properties.getProperty("bootyEnabled", "true"));
 
         Path statefile = Paths.get(statefileName);
         Path tubes = Paths.get(tubesDirectory);
@@ -97,7 +98,7 @@ class Listeners {
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
         handlers.add(new AdminHandler(acl));
-        handlers.add(new BombAndTubesHandler(wrapper, tubes, acl));
+        handlers.add(new BombAndTubesHandler(wrapper, tubes, acl, bootyEnabled));
         handlers.add(logListener.getCommandHandler());
         handlers.add(cryoHandler);
         handlers.add(filterListener.getCommandHandler());

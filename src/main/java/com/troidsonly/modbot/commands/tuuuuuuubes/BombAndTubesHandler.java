@@ -63,7 +63,7 @@ public class BombAndTubesHandler implements CommandHandler {
     private static final String CMD_TUBES = "tubes";
     private static final String CMD_BOMB = "bomb";
     private static final String CMD_BOOTY = "booty";
-    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_TUBES, CMD_BOMB, CMD_BOOTY);
+    private final Set<String> COMMANDS;
 
     private static final String URLLIST_SCMD_ADD = "add";
     private static final String URLLIST_SCMD_REMOVE = "remove";
@@ -92,7 +92,8 @@ public class BombAndTubesHandler implements CommandHandler {
     private final Map<String, Integer> bootyCount = new HashMap<>();
     private final Map<String, Long> bootyRatelimitEnd = new HashMap<>();
 
-    public BombAndTubesHandler(PersistenceWrapper<?> persistenceWrapper, Path tubesPath, AccessControl acl) {
+    public BombAndTubesHandler(PersistenceWrapper<?> persistenceWrapper, Path tubesPath, AccessControl acl,
+            boolean enableBooty) {
         pm = persistenceWrapper.getPersistenceManager("tuuuuuuubes", BombsAndTubesRepository.class);
         this.tubesPath = tubesPath;
         this.acl = acl;
@@ -110,6 +111,12 @@ public class BombAndTubesHandler implements CommandHandler {
         }
 
         config = pm.get().orElseGet(BombsAndTubesRepository::empty);
+
+        if (enableBooty) {
+            COMMANDS = ImmutableSet.of(CMD_TUBES, CMD_BOMB, CMD_BOOTY);
+        } else {
+            COMMANDS = ImmutableSet.of(CMD_TUBES, CMD_BOMB);
+        }
     }
 
     @Override
