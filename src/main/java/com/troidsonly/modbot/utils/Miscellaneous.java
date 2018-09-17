@@ -49,16 +49,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.requests.RestAction;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.troidsonly.modbot.ModBot;
 
@@ -204,5 +208,35 @@ public final class Miscellaneous {
 
     public static String unixEpochToRfc1123DateTimeString(long epochSeconds) {
         return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault()).format(DateTimeFormatter.RFC_1123_DATE_TIME);
+    }
+
+    public static Set<String> getAllRoles(GuildMessageReceivedEvent event, boolean preventNotification) {
+        return event.getGuild().getRoles().stream()
+            .map(Role::getName)
+            .map(role -> {
+                if (preventNotification && "@everyone".equals(role)) {
+                    role = "everyone";
+                }
+
+                return role;
+            })
+            .collect(Collectors.toSet());
+    }
+
+    public static ZonedDateTime processTimeSpec(String timespec) throws IllegalArgumentException {
+        PeriodFormatter formatter = new PeriodFormatterBuilder()
+            .appendYears().appendSuffix("y")
+            .appendWeeks().appendSuffix("w")
+            .appendDays().appendSuffix("d")
+            .appendHours().appendSuffix("h")
+            .appendMinutes().appendSuffix("m")
+            .appendSeconds().appendSuffix("s")
+            .toFormatter();
+
+        ZonedDateTime retval = ZonedDateTime.now().plusSeconds(formatter.parsePeriod(timespec).toDurationFrom(org.joda.time.Instant.now()).getStandardSeconds());
+        if (retval.getYear() > 9999) {
+            throw new IllegalArgumentException("Specified time is too far in the future (past year 9999). Go away.");
+        }
+        return retval;
     }
 }

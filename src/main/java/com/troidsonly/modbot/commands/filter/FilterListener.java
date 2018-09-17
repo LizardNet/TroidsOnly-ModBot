@@ -47,8 +47,8 @@ import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
-import com.troidsonly.modbot.commands.cryo.CryoHandler;
 import com.troidsonly.modbot.commands.log.LogListener;
+import com.troidsonly.modbot.commands.mute.MuteListener;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.persistence.PersistenceManager;
 import com.troidsonly.modbot.persistence.PersistenceWrapper;
@@ -59,7 +59,7 @@ public class FilterListener extends ListenerAdapter {
     private final AccessControl acl;
     private final LogListener logger;
     private final PersistenceManager<FilterRepository> pm;
-    private final CryoHandler cryoHandler;
+    private final MuteListener muteListener;
     private final ExecutorService executorService;
     private final String fantasyString;
 
@@ -68,11 +68,11 @@ public class FilterListener extends ListenerAdapter {
 
     private JDA jda = null;
 
-    public FilterListener(AccessControl acl, LogListener logger, PersistenceWrapper<?> wrapper, CryoHandler cryoHandler, ExecutorService executorService, String fantasyString) {
+    public FilterListener(AccessControl acl, LogListener logger, PersistenceWrapper<?> wrapper, MuteListener muteListener, ExecutorService executorService, String fantasyString) {
         this.acl = acl;
         this.logger = logger;
         pm = wrapper.getPersistenceManager("FilterListener", FilterRepository.class);
-        this.cryoHandler = cryoHandler;
+        this.muteListener = muteListener;
         this.executorService = executorService;
         this.fantasyString = fantasyString;
 
@@ -99,8 +99,8 @@ public class FilterListener extends ListenerAdapter {
         return filterRepository;
     }
 
-    CryoHandler getCryoHandler() {
-        return cryoHandler;
+    MuteListener getMuteListener() {
+        return muteListener;
     }
 
     AccessControl getAcl() {
