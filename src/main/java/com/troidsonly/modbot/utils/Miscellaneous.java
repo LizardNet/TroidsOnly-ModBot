@@ -49,10 +49,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.Event;
@@ -204,5 +206,18 @@ public final class Miscellaneous {
 
     public static String unixEpochToRfc1123DateTimeString(long epochSeconds) {
         return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault()).format(DateTimeFormatter.RFC_1123_DATE_TIME);
+    }
+
+    public static Set<String> getAllRoles(GuildMessageReceivedEvent event, boolean preventNotification) {
+        return event.getGuild().getRoles().stream()
+            .map(Role::getName)
+            .map(role -> {
+                if (preventNotification && "@everyone".equals(role)) {
+                    role = "everyone";
+                }
+
+                return role;
+            })
+            .collect(Collectors.toSet());
     }
 }
