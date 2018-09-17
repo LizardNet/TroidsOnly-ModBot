@@ -45,6 +45,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +58,7 @@ import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class ModBot {
+
     public static final String PROJECT_NAME = "TroidsOnly/ModBot";
     public static final String PERMFAIL_MESSAGE = "Adam does not authorize you to use this command."; // TODO: Make this configurable, or use a localization file system
     private final JDABuilder botBuilder;
@@ -68,12 +71,13 @@ public class ModBot {
             System.exit(1);
         }
 
-        Listeners listeners = new Listeners(properties, constructExecutorService());
+        Listeners listeners = new Listeners(properties, constructExecutorService(),
+                constructScheduledExecutorService());
 
         listeners.register();
 
         botBuilder = new JDABuilder(AccountType.BOT)
-            .setToken(token);
+                .setToken(token);
 
         listeners.getAllListeners().forEach(botBuilder::addEventListener);
     }
@@ -100,7 +104,8 @@ public class ModBot {
         try (InputStream is = Files.newInputStream(configurationFile)) {
             properties.load(is);
         } catch (NoSuchFileException e) {
-            System.err.println("Error: Could not find configuration file " + configurationFile + " (NoSuchFileException). A default configuration file has been created for you at that location.");
+            System.err.println("Error: Could not find configuration file " + configurationFile
+                    + " (NoSuchFileException). A default configuration file has been created for you at that location.");
             System.err.println("The bot will now terminate to give you an opportunity to edit the configuration file.");
             try (InputStream defaultConfig = ModBot.class.getResourceAsStream("/default.config.props")) {
                 Files.copy(defaultConfig, configurationFile);
@@ -110,7 +115,8 @@ public class ModBot {
             }
             System.exit(3);
         } catch (IOException e) {
-            System.err.println("Error: Could not read configuration file " + configurationFile + ".  A stack trace follows.  The bot will now terminate.");
+            System.err.println("Error: Could not read configuration file " + configurationFile
+                    + ".  A stack trace follows.  The bot will now terminate.");
             e.printStackTrace();
             System.exit(3);
         }
@@ -131,11 +137,21 @@ public class ModBot {
 
     private ExecutorService constructExecutorService() {
         BasicThreadFactory factory = new BasicThreadFactory.Builder()
-            .namingPattern("primaryExecutorPool-thread%d")
-            .daemon(true)
-            .build();
-        ThreadPoolExecutor ret = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), factory);
+                .namingPattern("primaryExecutorPool-thread%d")
+                .daemon(true)
+                .build();
+        ThreadPoolExecutor ret = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
+                new SynchronousQueue<>(), factory);
         ret.allowCoreThreadTimeOut(true);
         return ret;
+    }
+
+    private ScheduledExecutorService constructScheduledExecutorService() {
+        BasicThreadFactory factory = new BasicThreadFactory.Builder()
+                .namingPattern("scheduledExecutorPool-thread%d")
+                .daemon(true)
+                .build();
+        return Executors
+                .newScheduledThreadPool(5, factory); // This seems like it should be enough for the reasonable future
     }
 }

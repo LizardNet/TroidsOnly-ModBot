@@ -46,14 +46,16 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import com.troidsonly.modbot.commands.admin.AdminHandler;
-import com.troidsonly.modbot.commands.cryo.CryoHandler;
 import com.troidsonly.modbot.commands.dumpmessages.DumpMessagesHandler;
 import com.troidsonly.modbot.commands.filter.FilterListener;
 import com.troidsonly.modbot.commands.log.LogListener;
+import com.troidsonly.modbot.commands.mute.MuteListener;
+import com.troidsonly.modbot.commands.roleme.RoleMeListener;
 import com.troidsonly.modbot.commands.tuuuuuuubes.BombAndTubesHandler;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.hooks.CommandListener;
@@ -65,14 +67,18 @@ import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.security.DiscordGuildRoleAccessControl;
 
 class Listeners {
+
     private final Set<EventListener> ownListeners = new HashSet<>();
 
     private final Properties properties;
     private final ExecutorService executorService;
+    private final ScheduledExecutorService scheduledExecutorService;
 
-    public Listeners(Properties properties, ExecutorService executorService) {
+    public Listeners(Properties properties, ExecutorService executorService,
+            ScheduledExecutorService scheduledExecutorService) {
         this.properties = properties;
         this.executorService = executorService;
+        this.scheduledExecutorService = scheduledExecutorService;
     }
 
     public Set<EventListener> getAllListeners() {
@@ -92,21 +98,26 @@ class Listeners {
         PersistenceWrapper<?> wrapper = new GsonPersistenceWrapper(statefile);
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
         LogListener logListener = new LogListener(wrapper, acl);
-        CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
-        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService, fantasyString);
+        MuteListener muteListener = new MuteListener(acl, wrapper, logListener, scheduledExecutorService);
+        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, muteListener, executorService,
+                fantasyString);
+        RoleMeListener roleMeListener = new RoleMeListener(wrapper, acl, logListener, scheduledExecutorService);
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
         handlers.add(new AdminHandler(acl));
         handlers.add(new BombAndTubesHandler(wrapper, tubes, acl, bootyEnabled));
         handlers.add(logListener.getCommandHandler());
-        handlers.add(cryoHandler);
+        handlers.add(muteListener.getCommandHandler());
         handlers.add(filterListener.getCommandHandler());
         handlers.add(new DumpMessagesHandler(acl, logListener));
+        handlers.add(roleMeListener.getCommandHandler());
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
         ownListeners.add(logListener);
+        ownListeners.add(muteListener);
         ownListeners.add(filterListener);
+        ownListeners.add(roleMeListener);
     }
 }
