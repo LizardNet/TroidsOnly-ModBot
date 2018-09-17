@@ -30,12 +30,11 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.cryo;
+package com.troidsonly.modbot.commands.mute;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import net.dv8tion.jda.core.entities.Role;
@@ -48,22 +47,24 @@ import com.troidsonly.modbot.persistence.PersistenceWrapper;
 import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
-public class CryoHandler implements CommandHandler {
-    private static final String CMD_CFGCRYO = "cfgcryo";
-    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_CFGCRYO);
+public class MuteHandler implements CommandHandler {
 
-    private static final String PERM_CFGCRYO = CMD_CFGCRYO;
+    private static final String CMD_CFGMUTE = "cfgmute";
+    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_CFGMUTE);
+
+    private static final String PERM_CFGMUTE = CMD_CFGMUTE;
 
     private final AccessControl acl;
-    private final PersistenceManager<CryoConfig> pm;
+    private final PersistenceManager<MuteConfig> pm;
 
-    private final CryoConfig config;
+    private final MuteConfig config;
 
-    public CryoHandler(AccessControl acl, PersistenceWrapper<?> wrapper) {
+    public MuteHandler(AccessControl acl, PersistenceWrapper<?> wrapper) {
         this.acl = acl;
-        pm = wrapper.getPersistenceManager("CryoConfig", CryoConfig.class);
+        // Old name preserved as namespace for backwards comaptibility
+        pm = wrapper.getPersistenceManager("CryoConfig", MuteConfig.class);
 
-        config = pm.get().orElseGet(CryoConfig::empty);
+        config = pm.get().orElseGet(MuteConfig::empty);
     }
 
     @Override
@@ -72,8 +73,8 @@ public class CryoHandler implements CommandHandler {
             return COMMANDS;
         }
 
-        if (commands.size() == 1 && commands.get(0).equals(CMD_CFGCRYO)) {
-            return ImmutableSet.copyOf(getAllRoles(event));
+        if (commands.size() == 1 && commands.get(0).equals(CMD_CFGMUTE)) {
+            return ImmutableSet.copyOf(Miscellaneous.getAllRoles(event, false));
         }
 
         return Collections.emptySet();
@@ -86,28 +87,29 @@ public class CryoHandler implements CommandHandler {
         }
 
         switch (commands.get(0)) {
-            case CMD_CFGCRYO:
-                if (acl.hasPermission(event.getMember(), PERM_CFGCRYO)) {
+            case CMD_CFGMUTE:
+                if (acl.hasPermission(event.getMember(), PERM_CFGMUTE)) {
                     if (commands.size() == 2) {
-                        Role cryoRole = event.getGuild().getRolesByName(commands.get(1), true).get(0);
+                        Role muteRole = event.getGuild().getRolesByName(commands.get(1), true).get(0);
 
-                        config.setCryoRoleId(cryoRole.getId());
+                        config.setMuteRoleId(muteRole.getId());
                         sync();
 
-                        Miscellaneous.respond(event, "Cryo role set to " + cryoRole.toString());
+                        Miscellaneous.respond(event, "Mute role set to " + muteRole.toString());
                     } else {
-                        String cryoRole;
+                        String muteRole;
 
-                        if (config.getCryoRoleId() == null) {
-                            cryoRole = "(not set)";
+                        if (config.getMuteRoleId() == null) {
+                            muteRole = "(not set)";
                         } else {
-                            cryoRole = event.getGuild().getRoleById(config.getCryoRoleId()).toString();
+                            muteRole = event.getGuild().getRoleById(config.getMuteRoleId()).toString();
                         }
 
                         Miscellaneous.respond(event, "Sorry, I didn't recognize that role name\n" +
-                            "Cryo role is currently set to: " + cryoRole + '\n' +
-                            "Roles I recognize: " + Miscellaneous.getStringRepresentation(getAllRoles(event)) + '\n' +
-                            "Syntax: `" + CMD_CFGCRYO + " [roleName]`");
+                                "Mute role is currently set to: " + muteRole + '\n' +
+                                "Roles I recognize: " + Miscellaneous
+                                .getStringRepresentation(Miscellaneous.getAllRoles(event, true)) + '\n' +
+                                "Syntax: `" + CMD_CFGMUTE + " [roleName]`");
                     }
                 } else {
                     Miscellaneous.respond(event, ModBot.PERMFAIL_MESSAGE);
@@ -121,13 +123,7 @@ public class CryoHandler implements CommandHandler {
         pm.sync();
     }
 
-    public String getCryoRoleId() {
-        return config.getCryoRoleId();
-    }
-
-    private Set<String> getAllRoles(GuildMessageReceivedEvent event) {
-        return event.getGuild().getRoles().stream()
-            .map(Role::getName)
-            .collect(Collectors.toSet());
+    public String getMuteRoleId() {
+        return config.getMuteRoleId();
     }
 }

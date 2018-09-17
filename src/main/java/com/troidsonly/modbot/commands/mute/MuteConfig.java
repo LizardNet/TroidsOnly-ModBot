@@ -30,24 +30,25 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.cryo;
+package com.troidsonly.modbot.commands.mute;
 
 import java.util.Objects;
 
-class CryoConfig {
+class MuteConfig {
+    // Old field name preserved for compatibility; methods renamed
     private String cryoRoleId;
 
-    public static CryoConfig empty() {
-        CryoConfig retval = new CryoConfig();
+    public static MuteConfig empty() {
+        MuteConfig retval = new MuteConfig();
         retval.cryoRoleId = null;
         return retval;
     }
 
-    public String getCryoRoleId() {
+    public String getMuteRoleId() {
         return cryoRoleId;
     }
 
-    public void setCryoRoleId(String cryoRoleId) {
-        this.cryoRoleId = Objects.requireNonNull(cryoRoleId);
+    public void setMuteRoleId(String muteRoleId) {
+        cryoRoleId = Objects.requireNonNull(muteRoleId);
     }
 }

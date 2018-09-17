@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutorService;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import com.troidsonly.modbot.commands.admin.AdminHandler;
-import com.troidsonly.modbot.commands.cryo.CryoHandler;
+import com.troidsonly.modbot.commands.mute.MuteHandler;
 import com.troidsonly.modbot.commands.dumpmessages.DumpMessagesHandler;
 import com.troidsonly.modbot.commands.filter.FilterListener;
 import com.troidsonly.modbot.commands.log.LogListener;
@@ -92,15 +92,15 @@ class Listeners {
         PersistenceWrapper<?> wrapper = new GsonPersistenceWrapper(statefile);
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
         LogListener logListener = new LogListener(wrapper, acl);
-        CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
-        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService, fantasyString);
+        MuteHandler muteHandler = new MuteHandler(acl, wrapper);
+        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, muteHandler, executorService, fantasyString);
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
         handlers.add(new AdminHandler(acl));
         handlers.add(new BombAndTubesHandler(wrapper, tubes, acl, bootyEnabled));
         handlers.add(logListener.getCommandHandler());
-        handlers.add(cryoHandler);
+        handlers.add(muteHandler);
         handlers.add(filterListener.getCommandHandler());
         handlers.add(new DumpMessagesHandler(acl, logListener));
 
