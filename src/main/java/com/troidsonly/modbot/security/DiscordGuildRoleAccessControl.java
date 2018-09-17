@@ -54,6 +54,7 @@ import com.troidsonly.modbot.persistence.PersistenceWrapper;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
 public class DiscordGuildRoleAccessControl implements AccessControl {
+
     private final DGRACHandler commandHandler = new DGRACHandler();
     private final Set<String> owners;
     private final PersistenceManager<Persistence> pm;
@@ -77,12 +78,12 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
         }
 
         return member.getRoles().stream()
-            .map(Role::getId)
-            .filter(role -> persistence.getRoleIdToPermissions().containsKey(role))
-            .map(role -> persistence.getRoleIdToPermissions().get(role))
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toSet());
+                .map(Role::getId)
+                .filter(role -> persistence.getRoleIdToPermissions().containsKey(role))
+                .map(role -> persistence.getRoleIdToPermissions().get(role))
+                .filter(Objects::nonNull)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -96,6 +97,7 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
     }
 
     private static class Persistence {
+
         private Map<String, Set<String>> roleIdToPermissions;
 
         public static Persistence empty() {
@@ -110,6 +112,7 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
     }
 
     private class DGRACHandler implements CommandHandler {
+
         private static final String CMD_ACL = "acl";
         private final Set<String> COMMANDS = ImmutableSet.of(CMD_ACL);
 
@@ -128,8 +131,8 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
 
             if (commands.get(0).equals(CMD_ACL)) {
                 if (commands.size() == 2) {
-                    return getAllRoles(event);
-                } else if (commands.size() == 1){
+                    return Miscellaneous.getAllRoles(event, false);
+                } else if (commands.size() == 1) {
                     return SUBCOMMANDS;
                 }
             }
@@ -138,7 +141,8 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
         }
 
         @Override
-        public synchronized void handleCommand(GuildMessageReceivedEvent event, List<String> commands, String remainder) {
+        public synchronized void handleCommand(GuildMessageReceivedEvent event, List<String> commands,
+                String remainder) {
             if (commands.isEmpty()) {
                 return;
             }
@@ -151,25 +155,29 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
                         case SCMD_GRANT:
                             if (commands.size() < 3) {
                                 Miscellaneous.respond(event, "Sorry, I didn't recognize that role name.\n" +
-                                    "Recognized roles: " + Miscellaneous.getStringRepresentation(getAllRoles(event)) + '\n' +
-                                    "Syntax: acl grant [roleName] [permission]");
+                                        "Recognized roles: " + Miscellaneous
+                                        .getStringRepresentation(Miscellaneous.getAllRoles(event, true)) + '\n' +
+                                        "Syntax: acl grant [roleName] [permission]");
                             } else {
                                 String roleName = commands.get(2);
                                 String roleId = event.getGuild().getRolesByName(roleName, true).get(0).getId();
 
-                                Set<String> permissions = persistence.getRoleIdToPermissions().computeIfAbsent(roleId, k -> new HashSet<>());
+                                Set<String> permissions = persistence.getRoleIdToPermissions()
+                                        .computeIfAbsent(roleId, k -> new HashSet<>());
 
                                 permissions.add(remainder);
                                 sync();
 
-                                Miscellaneous.respond(event, "Granted permission \"" + remainder + "\" to role \"" + roleName + '"');
+                                Miscellaneous.respond(event,
+                                        "Granted permission \"" + remainder + "\" to role \"" + roleName + '"');
                             }
                             break;
                         case SCMD_REVOKE:
                             if (commands.size() < 3) {
                                 Miscellaneous.respond(event, "Sorry, I didn't recognize that role name.\n" +
-                                    "Recognized roles: " + Miscellaneous.getStringRepresentation(getAllRoles(event)) + '\n' +
-                                    "Syntax: acl revoke [roleName] [permission]");
+                                        "Recognized roles: " + Miscellaneous
+                                        .getStringRepresentation(Miscellaneous.getAllRoles(event, true)) + '\n' +
+                                        "Syntax: acl revoke [roleName] [permission]");
                             } else {
                                 String roleName = commands.get(2);
                                 String roleId = event.getGuild().getRolesByName(roleName, true).get(0).getId();
@@ -177,17 +185,22 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
                                 Set<String> permissions = persistence.getRoleIdToPermissions().get(roleId);
 
                                 if (permissions == null) {
-                                    Miscellaneous.respond(event, "Error: Cannot revoke permission \"" + remainder + "\" from role \"" + roleName +
-                                        "\" - this permission wasn't assigned in the first place.");
+                                    Miscellaneous.respond(event,
+                                            "Error: Cannot revoke permission \"" + remainder + "\" from role \""
+                                                    + roleName +
+                                                    "\" - this permission wasn't assigned in the first place.");
                                     return;
                                 }
 
                                 if (permissions.remove(remainder)) {
                                     sync();
-                                    Miscellaneous.respond(event, "Revoked permission " + remainder.trim() + " from role " + roleName);
+                                    Miscellaneous.respond(event,
+                                            "Revoked permission " + remainder.trim() + " from role " + roleName);
                                 } else {
-                                    Miscellaneous.respond(event, "Error: Cannot revoke permission \"" + remainder + "\" from role \"" + roleName +
-                                        "\" - this permission wasn't assigned in the first place.");
+                                    Miscellaneous.respond(event,
+                                            "Error: Cannot revoke permission \"" + remainder + "\" from role \""
+                                                    + roleName +
+                                                    "\" - this permission wasn't assigned in the first place.");
                                 }
                             }
                             break;
@@ -196,17 +209,20 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
                                 try {
                                     StringBuilder sb = new StringBuilder();
 
-                                    for (Map.Entry<String, Set<String>> entry : persistence.getRoleIdToPermissions().entrySet()) {
+                                    for (Map.Entry<String, Set<String>> entry : persistence.getRoleIdToPermissions()
+                                            .entrySet()) {
                                         sb.append("Role \"")
-                                            .append(event.getGuild().getRoleById(entry.getKey()))
-                                            .append("\" has permissions: ")
-                                            .append(Miscellaneous.getStringRepresentation(entry.getValue()))
-                                            .append('\n');
+                                                .append(event.getGuild().getRoleById(entry.getKey()))
+                                                .append("\" has permissions: ")
+                                                .append(Miscellaneous.getStringRepresentation(entry.getValue()))
+                                                .append('\n');
                                     }
 
                                     if (sb.length() > 0) {
-                                        Miscellaneous.respond(event, "PMing you all roles I have permissions assigned to.");
-                                        event.getMember().getUser().openPrivateChannel().complete(false).sendMessage(sb.toString()).complete(false);
+                                        Miscellaneous
+                                                .respond(event, "PMing you all roles I have permissions assigned to.");
+                                        event.getMember().getUser().openPrivateChannel().complete(false)
+                                                .sendMessage(sb.toString()).complete(false);
                                     } else {
                                         Miscellaneous.respond(event, "No permissions have yet been assigned.");
                                     }
@@ -228,14 +244,15 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
                                     }
 
                                     sb.append("Role \"")
-                                        .append(roleName)
-                                        .append("\" has permissions: ")
-                                        .append(Miscellaneous.getStringRepresentation(permissions))
-                                        .append('\n');
+                                            .append(roleName)
+                                            .append("\" has permissions: ")
+                                            .append(Miscellaneous.getStringRepresentation(permissions))
+                                            .append('\n');
 
                                     Miscellaneous.respond(event, sb.toString());
                                 } catch (Exception e) {
-                                    Miscellaneous.respond(event, "Failed to get permissions information: " + e.toString());
+                                    Miscellaneous
+                                            .respond(event, "Failed to get permissions information: " + e.toString());
                                     e.printStackTrace(System.err);
                                     return;
                                 }
@@ -243,24 +260,18 @@ public class DiscordGuildRoleAccessControl implements AccessControl {
                             break;
                         default:
                             Miscellaneous.respond(event, "Syntax error.  Usage:\n```\n" +
-                                "acl <grant|revoke> [roleName] [permission]\n" +
-                                "acl list {[roleName]}\n```");
+                                    "acl <grant|revoke> [roleName] [permission]\n" +
+                                    "acl list {[roleName]}\n```");
                             break;
                     }
                 } else {
                     Miscellaneous.respond(event, "Syntax error.  Usage:\n```\n" +
-                        "acl <grant|revoke> [roleName] [permission]\n" +
-                        "acl list {[roleName]}\n```");
+                            "acl <grant|revoke> [roleName] [permission]\n" +
+                            "acl list {[roleName]}\n```");
                 }
             } else {
                 Miscellaneous.respond(event, ModBot.PERMFAIL_MESSAGE);
             }
-        }
-
-        private Set<String> getAllRoles(GuildMessageReceivedEvent event) {
-            return event.getGuild().getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
         }
     }
 }
