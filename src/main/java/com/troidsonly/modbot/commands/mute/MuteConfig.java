@@ -30,24 +30,37 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.cryo;
+package com.troidsonly.modbot.commands.mute;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
-class CryoConfig {
+class MuteConfig {
+    // Old field name preserved for compatibility; methods renamed
     private String cryoRoleId;
+    private Map<String, Long> mutedUserTracker;
 
-    public static CryoConfig empty() {
-        CryoConfig retval = new CryoConfig();
+    public static MuteConfig empty() {
+        MuteConfig retval = new MuteConfig();
         retval.cryoRoleId = null;
+        retval.mutedUserTracker = new HashMap<>();
         return retval;
     }
 
-    public String getCryoRoleId() {
+    public String getMuteRoleId() {
         return cryoRoleId;
     }
 
-    public void setCryoRoleId(String cryoRoleId) {
-        this.cryoRoleId = Objects.requireNonNull(cryoRoleId);
+    public void setMuteRoleId(String muteRoleId) {
+        cryoRoleId = Objects.requireNonNull(muteRoleId);
+    }
+
+    public Map<String, Long> getMutedUserTracker() {
+        return mutedUserTracker;
+    }
+
+    public void setMutedUserTracker(Map<String, Long> mutedUserTracker) {
+        this.mutedUserTracker = Objects.requireNonNull(mutedUserTracker);
     }
 }
