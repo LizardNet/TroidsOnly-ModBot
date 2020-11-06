@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -51,14 +51,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.guild.GenericGuildEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.requests.RestAction;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.Event;
+import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.requests.RestAction;
 
 import com.troidsonly.modbot.ModBot;
 
@@ -163,6 +163,10 @@ public final class Miscellaneous {
     }
 
     public static String qualifyName(Member member) {
+        if (member == null) {
+            return "(some webhook)";
+        }
+
         StringBuilder sb = new StringBuilder(member.getUser().getName())
             .append('#')
             .append(member.getUser().getDiscriminator());
@@ -190,7 +194,7 @@ public final class Miscellaneous {
     }
 
     public static String getFullMessage(Message message) {
-        StringBuilder output = new StringBuilder(message.getRawContent());
+        StringBuilder output = new StringBuilder(message.getContentRaw());
 
         if (message.getAttachments().size() >= 1) {
             for (Message.Attachment attachment : message.getAttachments()) {

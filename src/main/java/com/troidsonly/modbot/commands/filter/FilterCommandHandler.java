@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -47,8 +47,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import com.google.common.collect.ImmutableSet;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
@@ -141,7 +142,7 @@ class FilterCommandHandler implements CommandHandler {
                                     return;
                                 }
 
-                                String args[] = remainder.split(" ");
+                                String[] args = remainder.split(" ");
 
                                 Long expiry;
                                 try {
@@ -188,7 +189,13 @@ class FilterCommandHandler implements CommandHandler {
                                     }
 
                                     EmbedBuilder embedBuilder = new EmbedBuilder();
-                                    embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
+
+                                    if (event.getMember() == null) {
+                                        embedBuilder.setAuthor("(Some webhook)");
+                                    } else {
+                                        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
+                                    }
+
                                     embedBuilder.setTitle("Added a filter");
                                     embedBuilder.setDescription('`' + newFilter.getRegex() + '`');
                                     embedBuilder.addField("With comment", newFilter.getComment(), false);
@@ -229,11 +236,18 @@ class FilterCommandHandler implements CommandHandler {
                                     filterList.remove(index);
 
                                     EmbedBuilder embedBuilder = new EmbedBuilder();
-                                    embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getMember().getUser().getAvatarUrl());
+                                    if (event.getMember() == null) {
+                                        embedBuilder.setAuthor("(Some webhook)");
+                                    } else {
+                                        embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null,
+                                                event.getMember().getUser().getAvatarUrl());
+                                    }
                                     embedBuilder.setTitle("Filter removed");
                                     embedBuilder.setDescription('`' + remainder + '`');
                                     embedBuilder.addField("Performing action", oldFilter.getAction().toString(), false);
-                                    embedBuilder.addField("Originally added by", event.getGuild().getMemberById(oldFilter.getCreatorUid()).getEffectiveName(), false);
+
+                                    Member originalMember = event.getGuild().getMemberById(oldFilter.getCreatorUid());
+                                    embedBuilder.addField("Originally added by", originalMember == null ? "(unknown)" : originalMember.getEffectiveName(), false);
                                     embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(oldFilter.getCreationTime()), false);
                                     embedBuilder.addField("Original comment", oldFilter.getComment(), false);
                                     embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
@@ -275,12 +289,14 @@ class FilterCommandHandler implements CommandHandler {
     private String regexFilterToString(GuildMessageReceivedEvent event, RegexFilter filter) {
         Objects.requireNonNull(filter);
 
+        Member filterCreator = event.getGuild().getMemberById(filter.getCreatorUid());
+
         StringBuilder sb = new StringBuilder("Regex: `")
             .append(filter.getRegex())
             .append("`; Action: ")
             .append(filter.getAction().toString())
             .append("; created by ")
-            .append(event.getGuild().getMemberById(filter.getCreatorUid()).getEffectiveName())
+            .append(filterCreator == null ? "(unknown)" : filterCreator.getEffectiveName())
             .append(" at ")
             .append(Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()))
             .append("; ");

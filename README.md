@@ -5,10 +5,13 @@ as well as provide some fun functions on the side for regular users.
 
 ## Building
 To build the bot from source, you'll need the Java SE 8 JDK and Apache Maven (version 3.0.0 or later recommended).
-You can also use a Maven-compatible IDE, such as IntelliJ IDEA or Eclipse, instead of Maven.
 
 Simply clone the repository, run `mvn package`, and run the resulting jarfile!  The bot will automatically create a
 default configuration file for you then terminate, so you have a chance to set things up; then just run the bot again!
+
+Note that due to recent changes to the bot's shading configuration, it is no longer compatible with being directly run
+in most IDEs (for example, using the "_Application_" configuration in IntelliJ IDEA no longer works). Instead, if you
+are running the bot within an IDE, you will need to use Maven to build the jarfile and run the jarfile.
 
 More information about running the bot may be put here, eventually.
 

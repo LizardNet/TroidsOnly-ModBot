@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -39,12 +39,13 @@ package com.troidsonly.modbot.hooks;
 
 import java.lang.reflect.Field;
 
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.impl.MessageImpl;
-import net.dv8tion.jda.core.events.Event;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.events.GenericEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.EventListener;
+import net.dv8tion.jda.internal.entities.AbstractMessage;
+import net.dv8tion.jda.internal.entities.ReceivedMessage;
 
 public class Fantasy extends Decorator {
     private final String fantasyPrefix;
@@ -57,21 +58,19 @@ public class Fantasy extends Decorator {
     }
 
     @Override
-    public void onEvent(Event event) {
+    public void onEvent(GenericEvent event) {
         if (event instanceof GuildMessageReceivedEvent) {
             GuildMessageReceivedEvent me = (GuildMessageReceivedEvent) event;
             String newMessage = processMessage(me.getMessage());
             if (newMessage != null) {
-                ((MessageImpl) me.getMessage()).setContent(processMessage(me.getMessage()));
-                doFuckery((MessageImpl) me.getMessage());
+                doFuckery((ReceivedMessage) me.getMessage(), processMessage(me.getMessage()));
                 super.onEvent(me);
             }
         } else if (event instanceof PrivateMessageReceivedEvent) {
             PrivateMessageReceivedEvent me = (PrivateMessageReceivedEvent) event;
             String newMessage = processMessage(me.getMessage());
             if (newMessage != null) {
-                ((MessageImpl) me.getMessage()).setContent(processMessage(me.getMessage()));
-                doFuckery((MessageImpl) me.getMessage());
+                doFuckery((ReceivedMessage) me.getMessage(), processMessage(me.getMessage()));
                 super.onEvent(me);
             } else {
                 super.onEvent(me);
@@ -80,24 +79,32 @@ public class Fantasy extends Decorator {
     }
 
     private String processMessage(Message message) {
-        if (message.getContent().startsWith(fantasyPrefix)) {
-            return message.getRawContent().substring(fantasyLength);
-        } else if (message.isMentioned(message.getJDA().getSelfUser()) && message.getRawContent().startsWith("<@" + message.getJDA().getSelfUser().getId() + '>')) {
-            return message.getRawContent().substring(message.getJDA().getSelfUser().getId().length() + 3).trim();
+        if (message.getContentDisplay().startsWith(fantasyPrefix)) {
+            return message.getContentRaw().substring(fantasyLength);
+        } else if (message.isMentioned(message.getJDA().getSelfUser()) && message.getContentRaw().startsWith("<@" + message.getJDA().getSelfUser().getId() + '>')) {
+            return message.getContentRaw().substring(message.getJDA().getSelfUser().getId().length() + 3).trim();
         }
         return null;
     }
 
-    private void doFuckery(MessageImpl message) {
+    private void doFuckery(ReceivedMessage message, String newContent) {
         // wheeeeeeeeeeeeeee reflection!
         // I'm a professional - don't try this at home, kids!
 
-        Class<? extends MessageImpl> clazz = message.getClass();
+        Class<? extends ReceivedMessage> clazz = message.getClass();
         Field field;
         try {
-            field = clazz.getDeclaredField("subContent");
+            field = clazz.getDeclaredField("altContent");
             field.setAccessible(true);
             field.set(message, null);
+
+            field = clazz.getDeclaredField("strippedContent");
+            field.setAccessible(true);
+            field.set(message, null);
+
+            field = AbstractMessage.class.getDeclaredField("content");
+            field.setAccessible(true);
+            field.set(message, newContent);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             System.err.println("Fuckery failed: " + e.toString());
             e.printStackTrace(System.err); // o no

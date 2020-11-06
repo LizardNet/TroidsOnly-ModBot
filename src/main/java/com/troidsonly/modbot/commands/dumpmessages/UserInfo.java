@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -35,8 +35,8 @@ package com.troidsonly.modbot.commands.dumpmessages;
 import java.util.Objects;
 
 public class UserInfo {
-    private String userName;
-    private String userId;
+    private final String userName;
+    private final String userId;
 
     public UserInfo(String userName, String userId) {
         this.userName = Objects.requireNonNull(userName);

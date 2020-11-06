@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -42,29 +42,32 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.guild.GuildBanEvent;
-import net.dv8tion.jda.core.events.guild.GuildUnbanEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberLeaveEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberNickChangeEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleAddEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberRoleRemoveEvent;
-import net.dv8tion.jda.core.events.message.MessageBulkDeleteEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageDeleteEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageUpdateEvent;
-import net.dv8tion.jda.core.events.user.UserNameUpdateEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.guild.GuildBanEvent;
+import net.dv8tion.jda.api.events.guild.GuildUnbanEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleAddEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRoleRemoveEvent;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
+import net.dv8tion.jda.api.events.message.MessageBulkDeleteEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageDeleteEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageUpdateEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateDiscriminatorEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormat;
 
 import com.troidsonly.modbot.commands.dumpmessages.MessageHistoryDumper;
 import com.troidsonly.modbot.hooks.CommandHandler;
@@ -73,6 +76,7 @@ import com.troidsonly.modbot.persistence.PersistenceWrapper;
 import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
+@SuppressWarnings({"NullableProblems", "ConstantConditions"})
 public class LogListener extends ListenerAdapter {
     private final PersistenceManager<LoggerConfig> pm;
     private final LogCommandHandler commandHandler;
@@ -177,7 +181,9 @@ public class LogListener extends ListenerAdapter {
         if (config.getEnabled() && jda != null) {
             TextChannel target = selectLogTarget(logUser, logChannel);
 
-            target.sendFile(file.toFile(), message).complete();
+            target.sendMessage(message)
+                    .addFile(file.toFile())
+                    .complete();
         }
     }
 
@@ -267,13 +273,27 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setTitle("User joined the server");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
         embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
+
+        Instant userCreatedTime = Instant.from(event.getUser().getTimeCreated());
+        org.joda.time.Instant userCreatedInstant = new org.joda.time.Instant(userCreatedTime.toEpochMilli());
+        Period userCreatedAgo = new Period(userCreatedInstant, (org.joda.time.Instant) null);
+        String userCreatedAgoHumanReadable = PeriodFormat.getDefault().print(userCreatedAgo);
+
+        embedBuilder.addField("User created",
+                Miscellaneous.unixEpochToRfc1123DateTimeString(userCreatedTime.getEpochSecond()) +
+                        ", " + userCreatedAgoHumanReadable + " ago", false);
+
+        if (userCreatedAgo.getWeeks() < 1) {
+            embedBuilder.addField("Caution", "User created less than one week ago!", false);
+        }
+
         embedBuilder.setColor(new Color(0x00CC00));
 
         sendToLog(embedBuilder.build(), event.getMember());
     }
 
     @Override
-    public void onGuildMemberLeave(GuildMemberLeaveEvent event) {
+    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
         embedBuilder.setTitle("User left the server");
@@ -285,19 +305,19 @@ public class LogListener extends ListenerAdapter {
     }
 
     @Override
-    public void onGuildMemberNickChange(GuildMemberNickChangeEvent event) {
+    public void onGuildMemberUpdateNickname(GuildMemberUpdateNicknameEvent event) {
         EmbedBuilder embedBuilder = new EmbedBuilder();
 
-        if (event.getNewNick() == null) {
+        if (event.getNewNickname() == null) {
             embedBuilder.setTitle("User removed their nickname");
-            embedBuilder.addField("Old nickname", event.getPrevNick() == null ? "(none)" : event.getPrevNick(),
+            embedBuilder.addField("Old nickname", event.getOldNickname() == null ? "(none)" : event.getOldNickname(),
                 false);
-        } else if (event.getPrevNick() == null) {
+        } else if (event.getOldNickname() == null) {
             embedBuilder.setTitle("User added a nickname");
         } else {
             embedBuilder.setTitle("User changed nickname");
             embedBuilder.setDescription("New nickname is given above.");
-            embedBuilder.addField("Old nickname", event.getPrevNick(), false);
+            embedBuilder.addField("Old nickname", event.getOldNickname(), false);
         }
 
         embedBuilder.setAuthor(Miscellaneous.qualifyName(event.getMember()), null, event.getUser().getAvatarUrl());
@@ -308,8 +328,8 @@ public class LogListener extends ListenerAdapter {
     }
 
     @Override
-    public void onUserNameUpdate(UserNameUpdateEvent event) {
-        String oldUsername = event.getOldName() + '#' + event.getOldDiscriminator();
+    public void onUserUpdateName(UserUpdateNameEvent event) {
+        String oldUsername = event.getOldName();
         EmbedBuilder embedBuilder = new EmbedBuilder();
         TextChannel primaryLogChannel = jda.getTextChannelById(config.getPrimaryLogChannelId());
 
@@ -319,9 +339,23 @@ public class LogListener extends ListenerAdapter {
         embedBuilder.setDescription("New username is given above.");
         embedBuilder.addField("Old username", oldUsername, false);
 
-        if (!event.getOldDiscriminator().equals(event.getUser().getDiscriminator())) {
-            embedBuilder.addField("Attention:", "Discriminator changed!", false);
-        }
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
+        embedBuilder.setColor(new Color(0x55AAFF));
+
+        sendToLog(embedBuilder.build(), event.getUser(), null);
+    }
+
+    @Override
+    public void onUserUpdateDiscriminator(UserUpdateDiscriminatorEvent event) {
+        String oldDiscriminator = event.getOldDiscriminator();
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        TextChannel primaryLogChannel = jda.getTextChannelById(config.getPrimaryLogChannelId());
+
+        embedBuilder.setTitle("User changed their discriminator");
+        embedBuilder.setAuthor(Miscellaneous.qualifyName(primaryLogChannel.getGuild().getMember(event.getUser())), null,
+                event.getUser().getAvatarUrl());
+        embedBuilder.setDescription("New discriminator is given above.");
+        embedBuilder.addField("Old discriminator was", "#" + oldDiscriminator, false);
 
         embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0x55AAFF));

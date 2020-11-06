@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -46,10 +46,10 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.MessageBuilder;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.commands.log.LogListener;
@@ -116,7 +116,10 @@ public class DumpMessagesHandler implements CommandHandler {
                     if (messageHistory != null) {
                         String messageText = event.getMember().getAsMention() + " Here is the message history dump file you requested:";
                         Message message = (new MessageBuilder()).append(messageText).build();
-                        event.getChannel().sendFile(messageHistory.toFile(), message).complete();
+                        event.getChannel()
+                                .sendMessage(message)
+                                .addFile(messageHistory.toFile())
+                                .complete();
                     } else {
                         throw new Exception("An unknown error has occurred.");
                     }

@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -36,8 +36,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class UserHistory {
-    private UserInfo user;
-    private List<ChannelHistory> channelHistories;
+    private final UserInfo user;
+    private final List<ChannelHistory> channelHistories;
 
     public UserHistory(UserInfo user, List<ChannelHistory> channelHistories) {
         this.user = Objects.requireNonNull(user);

@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -44,13 +44,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.RateLimitedException;
 
 import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.security.AccessControl;
@@ -196,7 +197,7 @@ public class BombAndTubesHandler implements CommandHandler {
                     }
 
                     try (InputStream is = Files.newInputStream(tube, StandardOpenOption.READ)) {
-                        event.getMessage().getChannel().sendFile(is, tube.getFileName().toString(), null).complete(false);
+                        event.getMessage().getChannel().sendFile(is, tube.getFileName().toString()).complete(false);
                         tubeCount.put(event.getChannel().getId(), tubeCount.get(event.getChannel().getId()) + 1);
                     } catch (IOException | RateLimitedException e) {
                         Miscellaneous.respond(event, ":fearful: Could not open the tubes: " + e.toString());
@@ -244,7 +245,11 @@ public class BombAndTubesHandler implements CommandHandler {
                             whats.append("```");
 
                             try {
-                                event.getMember().getUser().openPrivateChannel().complete(false).sendMessage(whats.toString()).complete(false);
+                                Objects.requireNonNull(event.getMember()).getUser()
+                                        .openPrivateChannel()
+                                        .complete(false)
+                                        .sendMessage(whats.toString())
+                                        .complete(false);
                             } catch (Exception e) {
                                 Miscellaneous.respond(event, "Could not send you a private message: " + e.toString());
                             }

@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -43,10 +43,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.PrivateChannel;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.PrivateChannel;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import com.troidsonly.modbot.utils.Miscellaneous;
 
@@ -108,7 +109,10 @@ public class FilterRunner implements Runnable {
                 embedBuilder.addField("Offending message", message, false);
                 embedBuilder.addField("Tripped filter comment", filter.getComment(), false);
                 embedBuilder.addField("Tripped filter action", filter.getAction().toString(), false);
-                embedBuilder.addField("Tripped filter added by", event.getGuild().getMemberById(filter.getCreatorUid()).getEffectiveName(), false);
+
+                Member filterCreator = event.getGuild().getMemberById(filter.getCreatorUid());
+                embedBuilder.addField("Tripped filter added by", filterCreator == null ? "(unknown)" : filterCreator.getEffectiveName(), false);
+
                 embedBuilder.addField("Tripped filter added at", Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
 
                 // First, check if the match is against someone who has permission to change filters - if so, they're considered exempt.  Always log only.
@@ -213,7 +217,7 @@ public class FilterRunner implements Runnable {
 
     private String actionKickUser() {
         try {
-            event.getGuild().getController().kick(member).reason("Automatic kick due to message filter violation").complete();
+            event.getGuild().kick(member).reason("Automatic kick due to message filter violation").complete();
         } catch (Exception e) {
             return "Failed to kick user: " + e.toString();
         }
@@ -223,8 +227,13 @@ public class FilterRunner implements Runnable {
 
     private String actionCryoUser() {
         try {
-            event.getGuild().getController()
-                .addRolesToMember(member, event.getGuild().getRoleById(parent.getCryoHandler().getCryoRoleId()))
+            Role cryoRole = event.getGuild().getRoleById(parent.getCryoHandler().getCryoRoleId());
+            if (cryoRole == null) {
+                throw new IllegalStateException("Cryo role has not been set");
+            }
+
+            event.getGuild()
+                .addRoleToMember(member, cryoRole)
                 .reason("Automatic cryo due to message filter violation")
                 .complete();
         } catch (Exception e) {
@@ -236,7 +245,9 @@ public class FilterRunner implements Runnable {
 
     private String actionBanUser() {
         try {
-            event.getGuild().getController().ban(member, 0, "Automatic ban due to message filter violation").reason("Automatic ban due to message filter violation").complete();
+            event.getGuild().ban(member, 0, "Automatic ban due to message filter violation")
+                    .reason("Automatic ban due to message filter violation")
+                    .complete();
         } catch (Exception e) {
             return "Failed to ban user: " + e.toString();
         }

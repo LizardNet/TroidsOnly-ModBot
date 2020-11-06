@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -41,16 +41,17 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.EvictingQueue;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
 
+@SuppressWarnings("UnstableApiUsage")
 public class MessageCache {
     private static final int QUEUE_SIZE = 1000;
 
     private final LoadingCache<TextChannel, Queue<Message>> messageCache;
 
     public MessageCache(TextChannel primaryLoggingChannel) {
-        primaryLoggingChannel.sendMessage("Initializing message cache; " + Integer.toString(QUEUE_SIZE) +
+        primaryLoggingChannel.sendMessage("Initializing message cache; " + QUEUE_SIZE +
             " messages per channel will be saved in the EvictingQueue").queue();
 
         messageCache = CacheBuilder.newBuilder()
@@ -59,13 +60,13 @@ public class MessageCache {
         primaryLoggingChannel.sendMessage("Enumerating and requesting history for all text channels...").queue();
         List<TextChannel> channels = primaryLoggingChannel.getGuild().getTextChannels();
 
-        final int messagesToRetrieve = QUEUE_SIZE > 100 ? 100 : QUEUE_SIZE;
+        final int messagesToRetrieve = Math.min(QUEUE_SIZE, 100);
 
         for (TextChannel channel : channels) {
             try {
                 List<Message> messages = channel.getHistory().retrievePast(messagesToRetrieve).complete();
                 messageCache.getUnchecked(channel).addAll(messages);
-                primaryLoggingChannel.sendMessage("Retrieved " + Integer.toString(messages.size()) + " messages for #" +
+                primaryLoggingChannel.sendMessage("Retrieved " + messages.size() + " messages for #" +
                     channel.getName() + " and added them to the message cache").queue();
             } catch (Exception e) {
                 primaryLoggingChannel.sendMessage("Failed to retrieve history for #" + channel.getName() +

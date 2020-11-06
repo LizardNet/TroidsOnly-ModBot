@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -37,15 +37,16 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import com.troidsonly.modbot.commands.cryo.CryoHandler;
 import com.troidsonly.modbot.commands.log.LogListener;
@@ -135,7 +136,7 @@ public class FilterListener extends ListenerAdapter {
                     embedBuilder.setTitle("Filter expired and automatically removed");
                     embedBuilder.setDescription('`' + filter.getRegex() + '`');
                     embedBuilder.addField("Performing action", filter.getAction().toString(), false);
-                    embedBuilder.addField("Originally added by", addingUser.getName() + '#' + addingUser.getDiscriminator(), false);
+                    embedBuilder.addField("Originally added by", addingUser == null ? "(unknown)" : (addingUser.getName() + '#' + addingUser.getDiscriminator()), false);
                     embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
                     embedBuilder.addField("Original comment", filter.getComment(), false);
                     embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
@@ -154,13 +155,14 @@ public class FilterListener extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+        Objects.requireNonNull(event);
         applyFilters(Miscellaneous.getFullMessage(event.getMessage()), event);
     }
 
     private void applyFilters(String fullMessage, GuildMessageReceivedEvent event) {
         Member member = event.getMember();
 
-        if (member.getUser().equals(jda.getSelfUser())) {
+        if (member != null && jda.getSelfUser().equals(member.getUser())) {
             // Ignore the bot outright
             return;
         }

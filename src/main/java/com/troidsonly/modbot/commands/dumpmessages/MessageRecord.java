@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -38,11 +38,11 @@ import java.util.Objects;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
 public class MessageRecord implements Comparable<MessageRecord> {
-    private String messageText;
-    private String rawMessageText;
-    private String rfc1123Timestamp;
-    private long unixEpochTimestamp;
-    private String messageId;
+    private final String messageText;
+    private final String rawMessageText;
+    private final String rfc1123Timestamp;
+    private final long unixEpochTimestamp;
+    private final String messageId;
 
     public MessageRecord(String messageText, String rawMessageText, OffsetDateTime messageTime, String messageId) {
         this.messageText = Objects.requireNonNull(messageText);

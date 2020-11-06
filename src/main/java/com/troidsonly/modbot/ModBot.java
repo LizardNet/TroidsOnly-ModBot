@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -50,9 +50,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.security.auth.login.LoginException;
 
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.ChunkingFilter;
+import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class ModBot {
@@ -72,14 +73,16 @@ public class ModBot {
 
         listeners.register();
 
-        botBuilder = new JDABuilder(AccountType.BOT)
-            .setToken(token);
+        botBuilder = JDABuilder.createDefault(token)
+                .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .setChunkingFilter(ChunkingFilter.ALL);
 
-        listeners.getAllListeners().forEach(botBuilder::addEventListener);
+        listeners.getAllListeners().forEach(botBuilder::addEventListeners);
     }
 
-    public void run() throws LoginException, InterruptedException, RateLimitedException {
-        botBuilder.buildBlocking();
+    public void run() throws LoginException, InterruptedException {
+        botBuilder.build().awaitReady();
     }
 
     public static void main(String[] args) {

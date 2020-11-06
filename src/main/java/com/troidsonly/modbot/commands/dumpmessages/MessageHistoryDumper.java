@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2018 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -48,10 +48,10 @@ import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
 
 import com.troidsonly.modbot.commands.log.MessageCache;
 import com.troidsonly.modbot.utils.Miscellaneous;
@@ -80,7 +80,7 @@ public final class MessageHistoryDumper {
                 String fullMessage = Miscellaneous.getFullMessage(message).trim();
 
                 if (!fullMessage.isEmpty()) {
-                    messageRecords.add(new MessageRecord(message.getContent(), fullMessage, message.getCreationTime(), message.getId()));
+                    messageRecords.add(new MessageRecord(message.getContentDisplay(), fullMessage, message.getTimeCreated(), message.getId()));
                 }
             }
 

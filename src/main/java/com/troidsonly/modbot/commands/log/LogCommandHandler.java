@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -40,11 +40,11 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
@@ -110,7 +110,7 @@ class LogCommandHandler implements CommandHandler {
                 if (parent.getAcl().hasPermission(event.getMember(), PERM_MK_LOG_ENTRY)) {
                     if (parent.getConfig().getEnabled()) {
                         if (!remainder.isEmpty()) {
-                            String logMessage = event.getMessage().getRawContent().substring(commands.get(0).length()).trim();
+                            String logMessage = event.getMessage().getContentRaw().substring(commands.get(0).length()).trim();
 
                             EmbedBuilder embedBuilder = new EmbedBuilder();
 
@@ -184,7 +184,7 @@ class LogCommandHandler implements CommandHandler {
                                 addFilter = true;
                             case CFGLOG_SCMD_REMOVE_FILTER:
                                 if (commands.size() == 3) {
-                                    String args[] = remainder.split(" ");
+                                    String[] args = remainder.split(" ");
 
                                     switch (commands.get(2)) {
                                         case FILTER_TYPE_CHANNEL:

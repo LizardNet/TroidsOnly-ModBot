@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -40,10 +40,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Icon;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Icon;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
@@ -111,7 +111,7 @@ public class AdminHandler implements CommandHandler {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what to change my nickname to!");
                     } else {
-                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().getController().setNickname(event.getGuild().getMember(event.getJDA().getSelfUser()), remainder))) {
+                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().modifyNickname(event.getGuild().getSelfMember(), remainder))) {
                             Miscellaneous.respond(event, "Changed my nickname!");
                         }
                     }
@@ -121,7 +121,7 @@ public class AdminHandler implements CommandHandler {
                 break;
             case CMD_REMOVENICK:
                 if (acl.hasPermission(event.getMember(), "nick")) {
-                    if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().getController().setNickname(event.getGuild().getMember(event.getJDA().getSelfUser()), null))) {
+                    if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().modifyNickname(event.getGuild().getSelfMember(), null))) {
                         Miscellaneous.respond(event, "Removed my nickname.");
                     }
                 } else {
@@ -155,11 +155,11 @@ public class AdminHandler implements CommandHandler {
 
                             TextChannel targetChannel = Miscellaneous.resolveTextChannelName(event, args[0]);
                             if (targetChannel != null) {
-                                message = event.getMessage().getRawContent().substring(commands.get(0).length() + targetChannel.getAsMention().length() + 1).trim();
+                                message = event.getMessage().getContentRaw().substring(commands.get(0).length() + targetChannel.getAsMention().length() + 1).trim();
                                 Miscellaneous.completeActionWithErrorHandling(event, targetChannel.sendMessage(message));
                             }
                         } else {
-                            message = event.getMessage().getRawContent().substring(commands.get(0).length()).trim();
+                            message = event.getMessage().getContentRaw().substring(commands.get(0).length()).trim();
                             Miscellaneous.completeActionWithErrorHandling(event, event.getChannel().sendMessage(message));
                         }
                     } else {
@@ -167,7 +167,13 @@ public class AdminHandler implements CommandHandler {
                     }
                 } else {
                     // take that, smartass!
-                    String actor = '@' + event.getMember().getEffectiveName();
+
+                    String actor;
+                    if (event.getMember() != null) {
+                        actor = '@' + event.getMember().getEffectiveName();
+                    } else {
+                        actor = "";
+                    }
                     String remainderDespoofed = PATTERN_DESPOOF_STRING.matcher(remainder).replaceAll("");
 
                     if (PATTERN_DESPOOF_STRING.matcher(E_PERMFAIL).replaceAll("").equals(remainderDespoofed)
@@ -218,7 +224,7 @@ public class AdminHandler implements CommandHandler {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what I'm playing!");
                     } else {
-                        event.getJDA().getPresence().setGame(Game.of(remainder));
+                        event.getJDA().getPresence().setActivity(Activity.playing(remainder));
                         Miscellaneous.respond(event, "Now playing information set!");
                     }
                 } else {
@@ -227,7 +233,7 @@ public class AdminHandler implements CommandHandler {
                 break;
             case CMD_REMOVEPLAYING:
                 if (acl.hasPermission(event.getMember(), "usercon")) {
-                    event.getJDA().getPresence().setGame(null);
+                    event.getJDA().getPresence().setActivity(null);
                     Miscellaneous.respond(event, "Now playing information removed.");
                 } else {
                     Miscellaneous.respond(event, E_PERMFAIL);
