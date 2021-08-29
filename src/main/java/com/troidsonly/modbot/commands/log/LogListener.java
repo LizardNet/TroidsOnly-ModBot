@@ -283,7 +283,7 @@ public class LogListener extends ListenerAdapter {
                 Miscellaneous.unixEpochToRfc1123DateTimeString(userCreatedTime.getEpochSecond()) +
                         ", " + userCreatedAgoHumanReadable + " ago", false);
 
-        if (userCreatedAgo.getWeeks() < 1) {
+        if (userCreatedAgo.toStandardWeeks().getWeeks() < 1) {
             embedBuilder.addField("Caution", "User created less than one week ago!", false);
         }
 
