@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -91,7 +92,8 @@ public class GsonPersistenceWrapper implements PersistenceWrapper<JsonElement> {
     }
 
     public synchronized void loadClean() {
-        try (InputStreamReader is = new InputStreamReader(Files.newInputStream(path, StandardOpenOption.READ))) {
+        try (InputStreamReader is = new InputStreamReader(Files.newInputStream(path, StandardOpenOption.READ),
+                StandardCharsets.UTF_8)) {
             Map <String, JsonElement> loaded = gson.fromJson(is, TYPE_TOKEN);
 
             if (loaded != null) {
@@ -121,7 +123,8 @@ public class GsonPersistenceWrapper implements PersistenceWrapper<JsonElement> {
             }
 
             // Write out to the tempfile
-            try (PrintStream ps = new PrintStream(Files.newOutputStream(tempFile, StandardOpenOption.WRITE))) {
+            try (PrintStream ps = new PrintStream(Files.newOutputStream(tempFile, StandardOpenOption.WRITE), false,
+                    StandardCharsets.UTF_8.name())) {
                 String output = gson.toJson(cache, TYPE_TOKEN);
                 ps.println(output);
             } catch (IOException e) {

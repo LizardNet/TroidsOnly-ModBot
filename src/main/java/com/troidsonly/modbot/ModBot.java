@@ -54,6 +54,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 
 public class ModBot {
@@ -76,6 +77,7 @@ public class ModBot {
         botBuilder = JDABuilder.createDefault(token)
                 .enableIntents(GatewayIntent.GUILD_MEMBERS)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .enableCache(CacheFlag.EMOTE)
                 .setChunkingFilter(ChunkingFilter.ALL);
 
         listeners.getAllListeners().forEach(botBuilder::addEventListeners);
