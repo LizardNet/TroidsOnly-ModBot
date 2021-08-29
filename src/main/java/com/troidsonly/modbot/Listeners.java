@@ -37,6 +37,7 @@
 
 package com.troidsonly.modbot;
 
+import com.troidsonly.modbot.commands.reactforroles.ReactForRolesListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ class Listeners {
         LogListener logListener = new LogListener(wrapper, acl);
         CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
         FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService, fantasyString);
+        ReactForRolesListener reactForRolesListener = new ReactForRolesListener(wrapper, acl);
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
@@ -103,10 +105,12 @@ class Listeners {
         handlers.add(cryoHandler);
         handlers.add(filterListener.getCommandHandler());
         handlers.add(new DumpMessagesHandler(acl, logListener));
+        handlers.add(reactForRolesListener.getCommandHandler());
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
         ownListeners.add(logListener);
         ownListeners.add(filterListener);
+        ownListeners.add(reactForRolesListener);
     }
 }

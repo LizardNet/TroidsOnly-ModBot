@@ -46,6 +46,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -208,5 +209,23 @@ public final class Miscellaneous {
 
     public static String unixEpochToRfc1123DateTimeString(long epochSeconds) {
         return ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault()).format(DateTimeFormatter.RFC_1123_DATE_TIME);
+    }
+
+    /**
+     * For an input of a space-delimited string, discard {@code parts} number of words from the start of the string.
+     *
+     * @param input The input message of space-delimited words or parts to be processed
+     * @param parts The number of words (or space-delimited parts) to discard. Must be 0 or greater.
+     * @return A single string with the desired number of space-delimited parts removed from the beginning
+     */
+    public static String discardMessageParts(String input, int parts) {
+        if (parts < 0) {
+            throw new IllegalArgumentException("parts must be 0 or greater");
+        }
+
+        List<String> explodedMessage = new ArrayList<>(Arrays.asList(input.split(" ")));
+
+        explodedMessage.subList(0, parts).clear();
+        return String.join(" ", explodedMessage);
     }
 }
