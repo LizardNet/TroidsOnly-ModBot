@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2021 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -283,7 +283,7 @@ public class LogListener extends ListenerAdapter {
                 Miscellaneous.unixEpochToRfc1123DateTimeString(userCreatedTime.getEpochSecond()) +
                         ", " + userCreatedAgoHumanReadable + " ago", false);
 
-        if (userCreatedAgo.getWeeks() < 1) {
+        if (userCreatedAgo.toStandardWeeks().getWeeks() < 1) {
             embedBuilder.addField("Caution", "User created less than one week ago!", false);
         }
 

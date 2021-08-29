@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2021 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -35,7 +35,6 @@ package com.troidsonly.modbot.commands.cryo;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import net.dv8tion.jda.api.entities.Role;
@@ -73,7 +72,7 @@ public class CryoHandler implements CommandHandler {
         }
 
         if (commands.size() == 1 && commands.get(0).equals(CMD_CFGCRYO)) {
-            return ImmutableSet.copyOf(getAllRoles(event));
+            return ImmutableSet.copyOf(Miscellaneous.getAllRoles(event));
         }
 
         return Collections.emptySet();
@@ -106,7 +105,7 @@ public class CryoHandler implements CommandHandler {
 
                         Miscellaneous.respond(event, "Sorry, I didn't recognize that role name\n" +
                             "Cryo role is currently set to: " + cryoRole + '\n' +
-                            "Roles I recognize: " + Miscellaneous.getStringRepresentation(getAllRoles(event)) + '\n' +
+                            "Roles I recognize: " + Miscellaneous.getStringRepresentation(Miscellaneous.getAllRoles(event)) + '\n' +
                             "Syntax: `" + CMD_CFGCRYO + " [roleName]`");
                     }
                 } else {
@@ -123,11 +122,5 @@ public class CryoHandler implements CommandHandler {
 
     public String getCryoRoleId() {
         return config.getCryoRoleId();
-    }
-
-    private Set<String> getAllRoles(GuildMessageReceivedEvent event) {
-        return event.getGuild().getRoles().stream()
-            .map(Role::getName)
-            .collect(Collectors.toSet());
     }
 }
