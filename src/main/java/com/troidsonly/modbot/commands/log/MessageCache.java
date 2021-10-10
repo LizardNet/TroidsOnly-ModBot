@@ -64,7 +64,9 @@ public class MessageCache {
 
         for (TextChannel channel : channels) {
             try {
-                List<Message> messages = channel.getHistory().retrievePast(messagesToRetrieve).complete();
+                List<Message> messages = new WorkaroundMessageHistory(channel)
+                        .retrievePast(messagesToRetrieve)
+                        .complete();
                 messageCache.getUnchecked(channel).addAll(messages);
                 primaryLoggingChannel.sendMessage("Retrieved " + messages.size() + " messages for #" +
                     channel.getName() + " and added them to the message cache").queue();

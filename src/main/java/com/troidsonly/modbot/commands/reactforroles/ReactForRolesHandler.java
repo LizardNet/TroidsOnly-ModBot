@@ -199,7 +199,7 @@ class ReactForRolesHandler implements CommandHandler {
 
         Miscellaneous.respond(event, "Created a new react-for-roles message with ID `" + messageId + "`.\n"
                 + "To add role-to-reaction mappings, use the command: `" + CMD_REACTROLES + ' ' + REACTROLES_MAPROLE
-                + ' ' + OP_ADD + " [roleIdOrName] " + messageId + " [emote]`");
+                + ' ' + OP_ADD + " [roleName] " + messageId + " [emote]`");
     }
 
     private void handleMessageEditCommand(GuildMessageReceivedEvent event, List<String> commands, String remainder) {

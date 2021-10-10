@@ -192,12 +192,15 @@ class ReactForRolesMessageConfig {
             Emote emote = null;
             String emoteId = emoteIdToRoleIdEntry.getKey();
 
-            if (emoteId.length() > 4) {
-                emote = guild.getEmoteById(emoteId);
-            }
-
             if (role == null) {
                 continue;
+            }
+
+            try {
+                long emoteIdLong = Long.parseLong(emoteId);
+                emote = guild.getEmoteById(emoteIdLong);
+            } catch (NumberFormatException e) {
+                // It's not a snowflake ID, continue
             }
 
             if (emote == null) {

@@ -50,6 +50,7 @@ import net.dv8tion.jda.api.events.message.MessageDeleteEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveAllEvent;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
+import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import com.troidsonly.modbot.persistence.PersistenceManager;
@@ -252,14 +253,20 @@ public class ReactForRolesListener extends ListenerAdapter {
             throw new IllegalArgumentException("Attempted to use a role that does not exist (" + roleId + ')');
         }
 
-        if (member.getRoles().contains(role)) {
-            guild.removeRoleFromMember(member, role).reason("Requested via react-for-roles message").complete();
-            PrivateChannel pc = guild.getJDA().openPrivateChannelById(member.getUser().getId()).complete();
-            pc.sendMessage("Successfully removed the " + role.getName() + " role from you as requested.").complete();
-        } else {
-            guild.addRoleToMember(member, role).reason("Requested via react-for-roles message").complete();
-            PrivateChannel pc = guild.getJDA().openPrivateChannelById(member.getUser().getId()).complete();
-            pc.sendMessage("Successfully granted you the " + role.getName() + " role as requested.").complete();
+        try {
+            if (member.getRoles().contains(role)) {
+                guild.removeRoleFromMember(member, role).reason("Requested via react-for-roles message").complete();
+                PrivateChannel pc = guild.getJDA().openPrivateChannelById(member.getUser().getId()).complete();
+                pc.sendMessage("Successfully removed the " + role.getName() + " role from you as requested.")
+                        .complete();
+            } else {
+                guild.addRoleToMember(member, role).reason("Requested via react-for-roles message").complete();
+                PrivateChannel pc = guild.getJDA().openPrivateChannelById(member.getUser().getId()).complete();
+                pc.sendMessage("Successfully granted you the " + role.getName() + " role as requested.").complete();
+            }
+        } catch (ErrorResponseException e) {
+            System.err.println("Could not send confirmation message to user: " + e);
+            e.printStackTrace(System.err);
         }
     }
 

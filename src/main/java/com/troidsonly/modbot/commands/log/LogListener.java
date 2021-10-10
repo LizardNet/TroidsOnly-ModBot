@@ -148,7 +148,11 @@ public class LogListener extends ListenerAdapter {
     }
 
     public void sendToLog(MessageEmbed message, Member logUser, TextChannel logChannel) {
-        sendToLog(message, logUser.getUser(), logChannel);
+        if (logUser == null) {
+            sendToLog(message, (User) null, logChannel);
+        } else {
+            sendToLog(message, logUser.getUser(), logChannel);
+        }
     }
 
     private TextChannel selectLogTarget(User logUser, TextChannel logChannel) {
@@ -283,8 +287,12 @@ public class LogListener extends ListenerAdapter {
                 Miscellaneous.unixEpochToRfc1123DateTimeString(userCreatedTime.getEpochSecond()) +
                         ", " + userCreatedAgoHumanReadable + " ago", false);
 
-        if (userCreatedAgo.toStandardWeeks().getWeeks() < 1) {
-            embedBuilder.addField("Caution", "User created less than one week ago!", false);
+        try {
+            if (userCreatedAgo.toStandardWeeks().getWeeks() < 1) {
+                embedBuilder.addField("Caution", "User created less than one week ago!", false);
+            }
+        } catch (UnsupportedOperationException e) {
+            // Oh well
         }
 
         embedBuilder.setColor(new Color(0x00CC00));
