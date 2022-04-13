@@ -234,6 +234,7 @@ public final class Miscellaneous {
     public static Set<String> getAllRoles(GuildMessageReceivedEvent event) {
         return event.getGuild().getRoles().stream()
             .map(Role::getName)
+            .filter(s -> !s.equalsIgnoreCase("@everyone"))
             .collect(Collectors.toSet());
     }
 }
