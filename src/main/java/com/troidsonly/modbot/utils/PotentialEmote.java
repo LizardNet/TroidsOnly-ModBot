@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2021 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2021-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -30,7 +30,7 @@
  * developer to Gerrit before they are acted upon.
  */
 
-package com.troidsonly.modbot.commands.reactforroles;
+package com.troidsonly.modbot.utils;
 
 import java.util.Objects;
 import java.util.Optional;

@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2021 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2021-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -46,6 +46,7 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.utils.Miscellaneous;
+import com.troidsonly.modbot.utils.PotentialEmote;
 
 class ReactForRolesHandler implements CommandHandler {
 
