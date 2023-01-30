@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
@@ -166,32 +167,61 @@ public final class Miscellaneous {
     }
 
     public static String qualifyName(Member member) {
+        return qualifyName(member, true);
+    }
+
+    public static String qualifyName(Member member, boolean includeUid) {
         if (member == null) {
             return "(some webhook)";
         }
 
-        StringBuilder sb = new StringBuilder(member.getUser().getName())
-            .append('#')
-            .append(member.getUser().getDiscriminator());
+        StringBuilder sb;
 
-        if (member.getNickname() != null) {
-            sb.append(" / Nickname: ")
-                .append(member.getNickname());
+        if (includeUid) {
+            sb = new StringBuilder(member.getUser().getName())
+                .append('#')
+                .append(member.getUser().getDiscriminator());
+
+            if (member.getNickname() != null) {
+                sb.append(" / Nickname: ")
+                        .append(member.getNickname());
+            }
+        } else {
+            if (member.getNickname() != null) {
+                sb = new StringBuilder(member.getNickname())
+                        .append(" (")
+                        .append(member.getUser().getName())
+                        .append('#')
+                        .append(member.getUser().getDiscriminator())
+                        .append(')');
+            } else {
+                sb = new StringBuilder(member.getUser().getName())
+                        .append('#')
+                        .append(member.getUser().getDiscriminator());
+            }
         }
 
-        sb.append(" / UID: ")
-            .append(member.getUser().getId());
+        if (includeUid) {
+            sb.append(" / UID: ")
+                    .append(member.getUser().getId());
+        }
 
         return sb.toString();
     }
 
     public static String qualifyName(User user) {
-        StringBuilder sb = new StringBuilder(user.getName())
-            .append('#')
-            .append(user.getDiscriminator());
+        return qualifyName(user, true);
+    }
 
-        sb.append(" / UID: ")
-            .append(user.getId());
+    public static String qualifyName(User user, boolean includeUid) {
+        StringBuilder sb = new StringBuilder(user.getName())
+                .append('#')
+                .append(user.getDiscriminator());
+
+        if (includeUid) {
+            sb.append(" / UID: ")
+                    .append(user.getId());
+        }
 
         return sb.toString();
     }
@@ -236,5 +266,12 @@ public final class Miscellaneous {
             .map(Role::getName)
             .filter(s -> !s.equalsIgnoreCase("@everyone"))
             .collect(Collectors.toSet());
+    }
+
+    public static Set<String> getAllTextChannels(GuildMessageReceivedEvent event) {
+        return event.getGuild().getTextChannels().stream()
+                .map(GuildChannel::getName)
+                .map(s -> "#" + s)
+                .collect(Collectors.toSet());
     }
 }
