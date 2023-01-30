@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.dv8tion.jda.api.entities.GuildChannel;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
@@ -236,5 +237,12 @@ public final class Miscellaneous {
             .map(Role::getName)
             .filter(s -> !s.equalsIgnoreCase("@everyone"))
             .collect(Collectors.toSet());
+    }
+
+    public static Set<String> getAllTextChannels(GuildMessageReceivedEvent event) {
+        return event.getGuild().getTextChannels().stream()
+                .map(GuildChannel::getName)
+                .map(s -> "#" + s)
+                .collect(Collectors.toSet());
     }
 }

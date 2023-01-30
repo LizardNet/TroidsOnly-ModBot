@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2021 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2021-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -57,6 +57,7 @@ import com.troidsonly.modbot.persistence.PersistenceManager;
 import com.troidsonly.modbot.persistence.PersistenceWrapper;
 import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
+import com.troidsonly.modbot.utils.PotentialEmote;
 
 public class ReactForRolesListener extends ListenerAdapter {
 
