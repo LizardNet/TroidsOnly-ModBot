@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -55,6 +55,7 @@ import com.troidsonly.modbot.commands.dumpmessages.DumpMessagesHandler;
 import com.troidsonly.modbot.commands.filter.FilterListener;
 import com.troidsonly.modbot.commands.log.LogListener;
 import com.troidsonly.modbot.commands.reactforroles.ReactForRolesListener;
+import com.troidsonly.modbot.commands.starboard.StarboardListener;
 import com.troidsonly.modbot.commands.tuuuuuuubes.BombAndTubesHandler;
 import com.troidsonly.modbot.hooks.CommandHandler;
 import com.troidsonly.modbot.hooks.CommandListener;
@@ -66,6 +67,7 @@ import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.security.DiscordGuildRoleAccessControl;
 
 class Listeners {
+
     private final Set<EventListener> ownListeners = new HashSet<>();
 
     private final Properties properties;
@@ -94,8 +96,10 @@ class Listeners {
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
         LogListener logListener = new LogListener(wrapper, acl);
         CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
-        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService, fantasyString);
+        FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService,
+                fantasyString);
         ReactForRolesListener reactForRolesListener = new ReactForRolesListener(wrapper, acl);
+        StarboardListener starboardListener = new StarboardListener(wrapper, acl);
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
@@ -106,11 +110,13 @@ class Listeners {
         handlers.add(filterListener.getCommandHandler());
         handlers.add(new DumpMessagesHandler(acl, logListener));
         handlers.add(reactForRolesListener.getCommandHandler());
+        handlers.add(starboardListener.getCommandHandler());
 
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
         ownListeners.add(logListener);
         ownListeners.add(filterListener);
         ownListeners.add(reactForRolesListener);
+        ownListeners.add(starboardListener);
     }
 }
