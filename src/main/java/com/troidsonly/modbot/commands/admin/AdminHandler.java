@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -47,10 +47,10 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
 import com.troidsonly.modbot.ModBot;
 import com.troidsonly.modbot.hooks.CommandHandler;
-import com.troidsonly.modbot.security.AccessControl;
 import com.troidsonly.modbot.utils.Miscellaneous;
 
-public class AdminHandler implements CommandHandler {
+class AdminHandler implements CommandHandler {
+
     public static final String E_PERMFAIL = ModBot.PERMFAIL_MESSAGE;
 
     private static final String CMD_QUIT = "quit";
@@ -61,8 +61,8 @@ public class AdminHandler implements CommandHandler {
     private static final String CMD_SETAVATAR = "setavatar";
     private static final String CMD_SETPLAYING = "setplaying";
     private static final String CMD_REMOVEPLAYING = "removeplaying";
-    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_QUIT, CMD_CHGNICK, CMD_REMOVENICK, CMD_USERNAME, CMD_SAY, CMD_SETAVATAR,
-        CMD_SETPLAYING, CMD_REMOVEPLAYING);
+    private static final Set<String> COMMANDS = ImmutableSet.of(CMD_QUIT, CMD_CHGNICK, CMD_REMOVENICK, CMD_USERNAME,
+            CMD_SAY, CMD_SETAVATAR, CMD_SETPLAYING, CMD_REMOVEPLAYING);
 
     private static final String AVATAR_DEFAULT = "default";
     private static final Set<String> SETAVATAR_SUBCMDS = ImmutableSet.of(AVATAR_DEFAULT);
@@ -70,10 +70,10 @@ public class AdminHandler implements CommandHandler {
     private static final String REGEX_DESPOOF_STRING = "[^\\w]+";
     private static final Pattern PATTERN_DESPOOF_STRING = Pattern.compile(REGEX_DESPOOF_STRING);
 
-    private final AccessControl acl;
+    private final AdminListener parent;
 
-    public AdminHandler(AccessControl acl) {
-        this.acl = acl;
+    public AdminHandler(AdminListener parent) {
+        this.parent = parent;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class AdminHandler implements CommandHandler {
 
         switch (commands.get(0)) {
             case CMD_QUIT:
-                if (acl.hasPermission(event.getMember(), "quit")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "quit")) {
                     event.getMessage().getChannel().sendMessage("tear in salami").complete();
                     event.getJDA().shutdown();
                 } else {
@@ -107,11 +107,12 @@ public class AdminHandler implements CommandHandler {
                 }
                 break;
             case CMD_CHGNICK:
-                if (acl.hasPermission(event.getMember(), "nick")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "nick")) {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what to change my nickname to!");
                     } else {
-                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().modifyNickname(event.getGuild().getSelfMember(), remainder))) {
+                        if (Miscellaneous.completeActionWithErrorHandling(event,
+                                event.getGuild().modifyNickname(event.getGuild().getSelfMember(), remainder))) {
                             Miscellaneous.respond(event, "Changed my nickname!");
                         }
                     }
@@ -120,8 +121,9 @@ public class AdminHandler implements CommandHandler {
                 }
                 break;
             case CMD_REMOVENICK:
-                if (acl.hasPermission(event.getMember(), "nick")) {
-                    if (Miscellaneous.completeActionWithErrorHandling(event, event.getGuild().modifyNickname(event.getGuild().getSelfMember(), null))) {
+                if (parent.getAcl().hasPermission(event.getMember(), "nick")) {
+                    if (Miscellaneous.completeActionWithErrorHandling(event,
+                            event.getGuild().modifyNickname(event.getGuild().getSelfMember(), null))) {
                         Miscellaneous.respond(event, "Removed my nickname.");
                     }
                 } else {
@@ -129,11 +131,12 @@ public class AdminHandler implements CommandHandler {
                 }
                 break;
             case CMD_USERNAME:
-                if (acl.hasPermission(event.getMember(), "usercon")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "usercon")) {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what to change my username to!");
                     } else {
-                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setName(remainder))) {
+                        if (Miscellaneous.completeActionWithErrorHandling(event,
+                                event.getJDA().getSelfUser().getManager().setName(remainder))) {
                             Miscellaneous.respond(event, "Changed my username!");
                         }
                     }
@@ -142,28 +145,34 @@ public class AdminHandler implements CommandHandler {
                 }
                 break;
             case CMD_SAY:
-                if (acl.hasPermission(event.getMember(), "say")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "say")) {
                     if (!remainder.isEmpty()) {
                         String[] args = remainder.split(" ");
                         String message;
 
                         if (Miscellaneous.isChannelLike(args[0])) {
                             if (args.length < 2) {
-                                Miscellaneous.respond(event, "Error: Too few arguments. Syntax: say [#channel] [message]");
+                                Miscellaneous.respond(event,
+                                        "Error: Too few arguments. Syntax: say [#channel] [message]");
                                 return;
                             }
 
                             TextChannel targetChannel = Miscellaneous.resolveTextChannelName(event, args[0]);
                             if (targetChannel != null) {
-                                message = event.getMessage().getContentRaw().substring(commands.get(0).length() + targetChannel.getAsMention().length() + 1).trim();
-                                Miscellaneous.completeActionWithErrorHandling(event, targetChannel.sendMessage(message));
+                                message = event.getMessage().getContentRaw()
+                                        .substring(commands.get(0).length() + targetChannel.getAsMention().length() + 1)
+                                        .trim();
+                                Miscellaneous.completeActionWithErrorHandling(event,
+                                        targetChannel.sendMessage(message));
                             }
                         } else {
                             message = event.getMessage().getContentRaw().substring(commands.get(0).length()).trim();
-                            Miscellaneous.completeActionWithErrorHandling(event, event.getChannel().sendMessage(message));
+                            Miscellaneous.completeActionWithErrorHandling(event,
+                                    event.getChannel().sendMessage(message));
                         }
                     } else {
-                        Miscellaneous.respond(event, "Error: You need to give me a message to send.  Syntax: say {[#channel]} [message]");
+                        Miscellaneous.respond(event,
+                                "Error: You need to give me a message to send.  Syntax: say {[#channel]} [message]");
                     }
                 } else {
                     // take that, smartass!
@@ -177,17 +186,21 @@ public class AdminHandler implements CommandHandler {
                     String remainderDespoofed = PATTERN_DESPOOF_STRING.matcher(remainder).replaceAll("");
 
                     if (PATTERN_DESPOOF_STRING.matcher(E_PERMFAIL).replaceAll("").equals(remainderDespoofed)
-                        || PATTERN_DESPOOF_STRING.matcher(actor + ' ' + E_PERMFAIL).replaceAll("").equals(remainderDespoofed)) {
-                        event.getChannel().sendMessage("*throws sand in " + event.getMember().getAsMention() + "'s face*").complete();
+                            || PATTERN_DESPOOF_STRING.matcher(actor + ' ' + E_PERMFAIL).replaceAll("")
+                            .equals(remainderDespoofed)) {
+                        event.getChannel()
+                                .sendMessage("*throws sand in " + event.getMember().getAsMention() + "'s face*")
+                                .complete();
                     } else {
                         Miscellaneous.respond(event, E_PERMFAIL);
                     }
                 }
                 break;
             case CMD_SETAVATAR:
-                if (acl.hasPermission(event.getMember(), "usercon")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "usercon")) {
                     if (commands.size() == 2 && commands.get(1).equals(AVATAR_DEFAULT)) {
-                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setAvatar(null))) {
+                        if (Miscellaneous.completeActionWithErrorHandling(event,
+                                event.getJDA().getSelfUser().getManager().setAvatar(null))) {
                             Miscellaneous.respond(event, "Avatar reset to Discord default");
                         }
                     } else {
@@ -211,7 +224,8 @@ public class AdminHandler implements CommandHandler {
                             return;
                         }
 
-                        if (Miscellaneous.completeActionWithErrorHandling(event, event.getJDA().getSelfUser().getManager().setAvatar(icon))) {
+                        if (Miscellaneous.completeActionWithErrorHandling(event,
+                                event.getJDA().getSelfUser().getManager().setAvatar(icon))) {
                             Miscellaneous.respond(event, "Done!");
                         }
                     }
@@ -220,11 +234,12 @@ public class AdminHandler implements CommandHandler {
                 }
                 break;
             case CMD_SETPLAYING:
-                if (acl.hasPermission(event.getMember(), "usercon")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "usercon")) {
                     if (remainder.isEmpty()) {
                         Miscellaneous.respond(event, "You need to tell me what I'm playing!");
                     } else {
                         event.getJDA().getPresence().setActivity(Activity.playing(remainder));
+                        parent.persistNowPlaying(remainder);
                         Miscellaneous.respond(event, "Now playing information set!");
                     }
                 } else {
@@ -232,8 +247,9 @@ public class AdminHandler implements CommandHandler {
                 }
                 break;
             case CMD_REMOVEPLAYING:
-                if (acl.hasPermission(event.getMember(), "usercon")) {
+                if (parent.getAcl().hasPermission(event.getMember(), "usercon")) {
                     event.getJDA().getPresence().setActivity(null);
+                    parent.persistNowPlaying(null);
                     Miscellaneous.respond(event, "Now playing information removed.");
                 } else {
                     Miscellaneous.respond(event, E_PERMFAIL);

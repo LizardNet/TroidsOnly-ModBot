@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
@@ -150,19 +151,21 @@ class StarboardState {
      * @return A {@link StarboardConfig} object describing the Starboard configuration. Will never be null.
      */
     public StarboardConfig getConfigForChannel(String channelId) {
+        final StarboardConfig config;
+
         if (StringUtils.isEmpty(channelId)) {
             throw new IllegalArgumentException("channelId may not be empty or null.");
         }
 
-        if (excludedChannelIds.contains(channelId)) {
-            return StarboardConfig.of(false, null, null, null);
+        if (isChannelExcluded(channelId)) {
+            config = StarboardConfig.of(false, null, null, null);
+        } else if (channelHasOverride(channelId)) {
+            config = perChannelConfig.get(channelId);
+        } else {
+            config = globalConfig;
         }
 
-        if (perChannelConfig.containsKey(channelId)) {
-            return perChannelConfig.get(channelId);
-        }
-
-        return globalConfig;
+        return config;
     }
 
     /**
@@ -200,7 +203,7 @@ class StarboardState {
             throw new IllegalArgumentException("channelId may not be empty or null.");
         }
 
-        return perChannelConfig.containsKey(channelId);
+        return perChannelConfig.containsKey(channelId) && perChannelConfig.get(channelId).isEnabled();
     }
 
     /**
@@ -225,6 +228,32 @@ class StarboardState {
         }
 
         perChannelConfig.put(channelId, starboardConfig);
+    }
+
+    /**
+     * Gets the full set of Discord text channel IDs that are used as a Starboard channel for some other channel. These
+     * should be implicitly considered excluded.
+     *
+     * @return A set of strings representing Discord text channel IDs
+     */
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public Set<String> getAllStarboardChannelIds() {
+        Set<String> starboardChannels = new HashSet<>();
+
+        if (getGlobalConfig().isEnabled()) {
+            starboardChannels.add(getGlobalConfig().getTargetStarboardChannelId().get());
+        }
+
+        starboardChannels.addAll(
+                perChannelConfig.values().stream()
+                        .filter(StarboardConfig::isEnabled)
+                        .map(StarboardConfig::getTargetStarboardChannelId)
+                        .map(o -> o.orElse(null))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet())
+        );
+
+        return ImmutableSet.copyOf(starboardChannels);
     }
 
     /**
@@ -269,6 +298,9 @@ class StarboardState {
     /**
      * Checks if the specified channel is in the set of excluded channels. Useful for explicitly checking if a channel
      * is excluded, but is taken into consideration automatically when using {@link #getConfigForChannel(String)}.
+     * Note that this method includes both explicit and implicit exclusions (i.e., both channels excluded by running
+     * the exclude command, and those excluded by virtue of themselves being Starboard channels). If you only want to
+     * check explicitly excluded channels, use {@link #getExplicitlyExcludedChannelIds()}.
      *
      * @param channelId The Discord channel ID of the channel to check
      * @return Whether the channel is excluded
@@ -278,15 +310,17 @@ class StarboardState {
             throw new IllegalArgumentException("channelId may not be empty or null.");
         }
 
-        return excludedChannelIds.contains(channelId);
+        return excludedChannelIds.contains(channelId) || getAllStarboardChannelIds().contains(channelId);
     }
 
     /**
-     * Get the full set of channel IDs that have been excluded from the Starboard.
+     * Get the full set of channel IDs that have been explicitly excluded from the Starboard. Likewise, the result of
+     * this method won't include implicitly excluded channels (i.e., all channels that are themselves Starboard
+     * channels).
      *
      * @return The set of Discord text channel IDs that have been excluded
      */
-    public Set<String> getExcludedChannelIds() {
+    public Set<String> getExplicitlyExcludedChannelIds() {
         return ImmutableSet.copyOf(excludedChannelIds);
     }
 }

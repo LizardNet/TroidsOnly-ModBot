@@ -49,7 +49,7 @@ import java.util.concurrent.ExecutorService;
 
 import net.dv8tion.jda.api.hooks.EventListener;
 
-import com.troidsonly.modbot.commands.admin.AdminHandler;
+import com.troidsonly.modbot.commands.admin.AdminListener;
 import com.troidsonly.modbot.commands.cryo.CryoHandler;
 import com.troidsonly.modbot.commands.dumpmessages.DumpMessagesHandler;
 import com.troidsonly.modbot.commands.filter.FilterListener;
@@ -95,6 +95,7 @@ class Listeners {
         PersistenceWrapper<?> wrapper = new GsonPersistenceWrapper(statefile);
         AccessControl acl = new DiscordGuildRoleAccessControl(wrapper, new HashSet<>(Arrays.asList(ownerUids)));
         LogListener logListener = new LogListener(wrapper, acl);
+        AdminListener adminListener = new AdminListener(wrapper, acl);
         CryoHandler cryoHandler = new CryoHandler(acl, wrapper);
         FilterListener filterListener = new FilterListener(acl, logListener, wrapper, cryoHandler, executorService,
                 fantasyString);
@@ -103,7 +104,7 @@ class Listeners {
 
         List<CommandHandler> handlers = new ArrayList<>();
         handlers.add(acl.getHandler());
-        handlers.add(new AdminHandler(acl));
+        handlers.add(adminListener.getHandler());
         handlers.add(new BombAndTubesHandler(wrapper, tubes, acl, bootyEnabled));
         handlers.add(logListener.getCommandHandler());
         handlers.add(cryoHandler);
@@ -115,6 +116,7 @@ class Listeners {
         MultiCommandHandler commands = new MultiCommandHandler(handlers);
         ownListeners.add(new Fantasy(new CommandListener(commands), fantasyString));
         ownListeners.add(logListener);
+        ownListeners.add(adminListener);
         ownListeners.add(filterListener);
         ownListeners.add(reactForRolesListener);
         ownListeners.add(starboardListener);

@@ -365,12 +365,14 @@ class StarboardCommandHandler implements CommandHandler {
                 .append(starboardConfigStr)
                 .append("\n\nReason: ");
 
-        if (parent.getState().isChannelExcluded(textChannel.getId())) {
+        if (parent.getState().getExplicitlyExcludedChannelIds().contains(textChannel.getId())) {
             response.append("This channel was explicitly excluded from the Starboard using the `")
                     .append(CMD_STARBOARD)
                     .append(' ')
                     .append(STARBOARD_EXCLUDE)
                     .append("` command.");
+        } else if (parent.getState().isChannelExcluded(textChannel.getId())) {
+            response.append("Auto-excluded because this channel is a Starboard channel.");
         } else if (parent.getState().channelHasOverride(textChannel.getId())) {
             response.append("This channel has a configuration that overrides the global configuration.");
         } else {
@@ -395,7 +397,7 @@ class StarboardCommandHandler implements CommandHandler {
                     "Could not resolve channel to apply the configuration to. This should never happen!");
         }
 
-        if (parent.getState().isChannelExcluded(channelToSet.getId())) {
+        if (parent.getState().getExplicitlyExcludedChannelIds().contains(channelToSet.getId())) {
             Miscellaneous.respond(event,
                     "Warning: This channel is excluded from the Starboard. Please remove the exclusion " +
                             "before proceeding:\n" + '`' + CMD_STARBOARD + ' ' + STARBOARD_EXCLUDE + ' ' + OP_REMOVE +
@@ -431,7 +433,7 @@ class StarboardCommandHandler implements CommandHandler {
     private void printExclusions(GuildMessageReceivedEvent event) {
 
         String response = "These channels have been excluded from the Starboard: ";
-        response += parent.getState().getExcludedChannelIds()
+        response += parent.getState().getExplicitlyExcludedChannelIds()
                 .stream()
                 .map(chId -> event.getGuild().getTextChannelById(chId))
                 .filter(Objects::nonNull)
