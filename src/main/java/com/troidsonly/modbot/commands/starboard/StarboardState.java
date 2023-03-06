@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 
@@ -322,5 +323,18 @@ class StarboardState {
      */
     public Set<String> getExplicitlyExcludedChannelIds() {
         return ImmutableSet.copyOf(excludedChannelIds);
+    }
+
+    /**
+     * Returns an immutable copy of the full map of per-channel configurations. Note that the {@link StarboardConfig}
+     * objects used as the values of the map are also themselves immutable. The key of the returned map is the Discord
+     * text channel ID (as a String) of the channel the configuration applies to, while the value is the configuration
+     * itself. Remember that the configuration is not applied if {@linkplain StarboardConfig#isEnabled() it is
+     * disabled}!
+     *
+     * @return An immutable copy of the per-channel configurations map.
+     */
+    public Map<String, StarboardConfig> getPerChannelConfigs() {
+        return ImmutableMap.copyOf(perChannelConfig);
     }
 }

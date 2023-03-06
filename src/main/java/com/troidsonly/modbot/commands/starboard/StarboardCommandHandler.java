@@ -34,12 +34,14 @@ package com.troidsonly.modbot.commands.starboard;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import net.dv8tion.jda.api.entities.GuildChannel;
+import net.dv8tion.jda.api.entities.PrivateChannel;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 
@@ -56,8 +58,9 @@ class StarboardCommandHandler implements CommandHandler {
     private static final String STARBOARD_GLOBAL = "global";
     private static final String STARBOARD_CHANNEL = "channel";
     private static final String STARBOARD_EXCLUDE = "exclude";
+    private static final String STARBOARD_SHOW = "show";
     private static final Set<String> STARBOARD_SUB_COMMANDS = ImmutableSet.of(STARBOARD_GLOBAL, STARBOARD_CHANNEL,
-            STARBOARD_EXCLUDE);
+            STARBOARD_EXCLUDE, STARBOARD_SHOW);
 
     // Sub-commands for STARBOARD_GLOBAL and STARBOARD_CHANNEL
     private static final String OP_GET = "get";
@@ -88,6 +91,8 @@ class StarboardCommandHandler implements CommandHandler {
             "channel setting, use `" + CMD_STARBOARD + ' ' + STARBOARD_CHANNEL + " [#channelName]` instead of `" +
             CMD_STARBOARD + ' ' + STARBOARD_GLOBAL + "` for the above commands. Disabling the per-channel Starboard " +
             "will cause it to fall-back to using the global configuration.\n\n" +
+            "You can list all enabled Starboards and their configurations by using the command `" + CMD_STARBOARD +
+            ' ' + STARBOARD_SHOW + "`.\n\n" +
             "If the global starboard is enabled, you can also specifically exclude channels from the starboard:\n" +
             "- List exclusions: `" + CMD_STARBOARD + ' ' + STARBOARD_EXCLUDE + ' ' + OP_LIST + "`\n" +
             "- Add exclusion: `" + CMD_STARBOARD + ' ' + STARBOARD_EXCLUDE + ' ' + OP_ADD + " [#channelName]`\n" +
@@ -149,7 +154,17 @@ class StarboardCommandHandler implements CommandHandler {
         }
 
         try {
-            if (commands.size() <= 2) {
+            if (commands.size() <= 1) {
+                sendErrorWithSyntaxHelp("Too few arguments", event);
+                return;
+            }
+
+            if (commands.size() == 2) {
+                if (commands.get(1).equals(STARBOARD_SHOW)) {
+                    printAllStarboards(event);
+                    return;
+                }
+
                 sendErrorWithSyntaxHelp("Too few arguments", event);
                 return;
             }
@@ -430,17 +445,20 @@ class StarboardCommandHandler implements CommandHandler {
                 "Successfully disabled the Starboard configuration override for " + channelName + '.');
     }
 
-    private void printExclusions(GuildMessageReceivedEvent event) {
-
-        String response = "These channels have been excluded from the Starboard: ";
-        response += parent.getState().getExplicitlyExcludedChannelIds()
+    private String getExclusionsAsString(GuildMessageReceivedEvent event) {
+        return parent.getState().getExplicitlyExcludedChannelIds()
                 .stream()
                 .map(chId -> event.getGuild().getTextChannelById(chId))
                 .filter(Objects::nonNull)
                 .map(GuildChannel::getName)
                 .map(name -> "#" + name)
                 .collect(Collectors.joining(", "));
+    }
 
+    private void printExclusions(GuildMessageReceivedEvent event) {
+
+        String response = "These channels have been excluded from the Starboard: ";
+        response += getExclusionsAsString(event);
         Miscellaneous.respond(event, response);
     }
 
@@ -466,5 +484,53 @@ class StarboardCommandHandler implements CommandHandler {
         parent.getState().removeChannelExclusion(textChannel.getId());
         parent.sync();
         Miscellaneous.respond(event, "Successfully removed " + channelName + " from the Starboard exclusions list.");
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private void printAllStarboards(GuildMessageReceivedEvent event) {
+        final StringBuilder sb = new StringBuilder("Global Starboard configuration: ")
+                .append(configToString(event, parent.getState().getGlobalConfig()))
+                .append('.');
+
+        if (!parent.getState().getPerChannelConfigs().isEmpty()) {
+            sb.append("\n\nOverrides:");
+
+            for (Map.Entry<String, StarboardConfig> entry : parent.getState().getPerChannelConfigs().entrySet()) {
+                if (entry.getValue().isEnabled() && !parent.getState().getExplicitlyExcludedChannelIds()
+                        .contains(entry.getKey())) {
+                    TextChannel keyChannel = event.getGuild().getTextChannelById(entry.getKey());
+                    TextChannel starboardChannel = event.getGuild()
+                            .getTextChannelById(entry.getValue().getTargetStarboardChannelId().get());
+
+                    if (keyChannel != null && starboardChannel != null) {
+                        sb.append("\n- #")
+                                .append(keyChannel.getName())
+                                .append(" -> #")
+                                .append(starboardChannel.getName())
+                                .append(", **")
+                                .append(entry.getValue().getPromotionThreshold().getAsInt())
+                                .append("** ");
+
+                        PotentialEmote emote = new PotentialEmote(event.getGuild(),
+                                entry.getValue().getStarboardEmoteId().get());
+
+                        if (emote.getEmoteObject().isPresent()) {
+                            sb.append(emote.getEmoteObject().get().getAsMention());
+                        } else {
+                            sb.append(emote.getEmoteRaw());
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!parent.getState().getExplicitlyExcludedChannelIds().isEmpty()) {
+            sb.append("\n\nExplicit channel exclusions: ")
+                    .append(getExclusionsAsString(event));
+        }
+
+        Miscellaneous.respond(event, "Please check your DMs!");
+        PrivateChannel pc = event.getAuthor().openPrivateChannel().complete();
+        pc.sendMessage(sb.toString()).queue();
     }
 }
