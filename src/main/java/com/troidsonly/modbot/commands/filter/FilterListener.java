@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -136,10 +136,26 @@ public class FilterListener extends ListenerAdapter {
                     embedBuilder.setTitle("Filter expired and automatically removed");
                     embedBuilder.setDescription('`' + filter.getRegex() + '`');
                     embedBuilder.addField("Performing action", filter.getAction().toString(), false);
-                    embedBuilder.addField("Originally added by", addingUser == null ? "(unknown)" : (addingUser.getName() + '#' + addingUser.getDiscriminator()), false);
-                    embedBuilder.addField("Originally added at", Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
+
+                    String addingUserString;
+
+                    if (addingUser == null) {
+                        addingUserString = "(unknown)";
+                    } else {
+                        if (Miscellaneous.userHasDiscriminator(addingUser)) {
+                            addingUserString = addingUser.getName() + '#' + addingUser.getDiscriminator();
+                        } else {
+                            addingUserString = "@" + addingUser.getName();
+                        }
+                    }
+
+                    embedBuilder.addField("Originally added by", addingUserString, false);
+                    embedBuilder.addField("Originally added at",
+                            Miscellaneous.unixEpochToRfc1123DateTimeString(filter.getCreationTime()), false);
                     embedBuilder.addField("Original comment", filter.getComment(), false);
-                    embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
+                    embedBuilder.setFooter(
+                            getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(
+                                    Instant.now().getEpochSecond()), null);
                     embedBuilder.setColor(new Color(0xAAAAAA));
 
                     logger.sendToLog(embedBuilder.build(), (User) null, null);

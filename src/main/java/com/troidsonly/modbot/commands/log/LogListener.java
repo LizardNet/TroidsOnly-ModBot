@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2021 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -356,16 +356,24 @@ public class LogListener extends ListenerAdapter {
     @Override
     public void onUserUpdateDiscriminator(UserUpdateDiscriminatorEvent event) {
         String oldDiscriminator = event.getOldDiscriminator();
+
+        // Don't log if the discriminator didn't actually change. This appears to be common with users who have now
+        // migrated to Discord usernames. Likely a temporary workaround until the JDA upgrade is done.
+        if (oldDiscriminator.equals(event.getNewDiscriminator())) {
+            return;
+        }
+
         EmbedBuilder embedBuilder = new EmbedBuilder();
         TextChannel primaryLogChannel = jda.getTextChannelById(config.getPrimaryLogChannelId());
 
-        embedBuilder.setTitle("User changed their discriminator");
+        embedBuilder.setTitle("User changed their discriminator, or migrated to Discord usernames");
         embedBuilder.setAuthor(Miscellaneous.qualifyName(primaryLogChannel.getGuild().getMember(event.getUser())), null,
                 event.getUser().getAvatarUrl());
-        embedBuilder.setDescription("New discriminator is given above.");
+        embedBuilder.setDescription("New discriminator if any is given above.");
         embedBuilder.addField("Old discriminator was", "#" + oldDiscriminator, false);
 
-        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(Instant.now().getEpochSecond()), null);
+        embedBuilder.setFooter(getClass().getSimpleName() + " | " + Miscellaneous.unixEpochToRfc1123DateTimeString(
+                Instant.now().getEpochSecond()), null);
         embedBuilder.setColor(new Color(0x55AAFF));
 
         sendToLog(embedBuilder.build(), event.getUser(), null);

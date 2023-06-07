@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2018-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2018-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -64,8 +64,15 @@ public final class MessageHistoryDumper {
     }
 
     public static Path dumpMemberMessageHistory(User user, Guild guild, MessageCache messageCache) throws NoHistoryException, IOException {
-        UserInfo userInfo = new UserInfo(user.getName() + '#' + user.getDiscriminator(),
-            user.getId());
+        String userName;
+
+        if (Miscellaneous.userHasDiscriminator(user)) {
+            userName = user.getName() + '#' + user.getDiscriminator();
+        } else {
+            userName = "@" + user.getName();
+        }
+
+        UserInfo userInfo = new UserInfo(userName, user.getId());
 
         List<TextChannel> channelList = Miscellaneous.asSortedList(guild.getTextChannels());
         List<ChannelHistory> channelHistories = new ArrayList<>();

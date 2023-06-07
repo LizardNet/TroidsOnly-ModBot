@@ -63,6 +63,7 @@ import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.guild.GenericGuildEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.requests.RestAction;
+import org.apache.commons.lang3.StringUtils;
 
 import com.troidsonly.modbot.ModBot;
 
@@ -175,12 +176,18 @@ public final class Miscellaneous {
             return "(some webhook)";
         }
 
+        final boolean hasDiscriminator = userHasDiscriminator(member.getUser());
         StringBuilder sb;
 
         if (includeUid) {
-            sb = new StringBuilder(member.getUser().getName())
-                .append('#')
-                .append(member.getUser().getDiscriminator());
+            if (hasDiscriminator) {
+                sb = new StringBuilder(member.getUser().getName())
+                        .append('#')
+                        .append(member.getUser().getDiscriminator());
+            } else {
+                sb = new StringBuilder("@")
+                        .append(member.getUser().getName());
+            }
 
             if (member.getNickname() != null) {
                 sb.append(" / Nickname: ")
@@ -189,15 +196,27 @@ public final class Miscellaneous {
         } else {
             if (member.getNickname() != null) {
                 sb = new StringBuilder(member.getNickname())
-                        .append(" (")
-                        .append(member.getUser().getName())
-                        .append('#')
-                        .append(member.getUser().getDiscriminator())
-                        .append(')');
+                        .append(" (");
+
+                if (hasDiscriminator) {
+                    sb.append(member.getUser().getName())
+                            .append('#')
+                            .append(member.getUser().getDiscriminator());
+                } else {
+                    sb.append('@')
+                            .append(member.getUser().getName());
+                }
+
+                sb.append(')');
             } else {
-                sb = new StringBuilder(member.getUser().getName())
-                        .append('#')
-                        .append(member.getUser().getDiscriminator());
+                if (hasDiscriminator) {
+                    sb = new StringBuilder(member.getUser().getName())
+                            .append('#')
+                            .append(member.getUser().getDiscriminator());
+                } else {
+                    sb = new StringBuilder("@")
+                            .append(member.getUser().getName());
+                }
             }
         }
 
@@ -214,9 +233,16 @@ public final class Miscellaneous {
     }
 
     public static String qualifyName(User user, boolean includeUid) {
-        StringBuilder sb = new StringBuilder(user.getName())
-                .append('#')
-                .append(user.getDiscriminator());
+        StringBuilder sb;
+
+        if (userHasDiscriminator(user)) {
+            sb = new StringBuilder(user.getName())
+                    .append('#')
+                    .append(user.getDiscriminator());
+        } else {
+            sb = new StringBuilder("@")
+                    .append(user.getName());
+        }
 
         if (includeUid) {
             sb.append(" / UID: ")
@@ -273,5 +299,9 @@ public final class Miscellaneous {
                 .map(GuildChannel::getName)
                 .map(s -> "#" + s)
                 .collect(Collectors.toSet());
+    }
+
+    public static boolean userHasDiscriminator(User user) {
+        return !StringUtils.isEmpty(user.getDiscriminator()) && !user.getDiscriminator().matches("^0{1,4}$");
     }
 }

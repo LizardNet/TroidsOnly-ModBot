@@ -2,7 +2,7 @@
  * TROIDSONLY/MODBOT
  * By the Metroid Community Discord Server's Development Team (see AUTHORS.txt file)
  *
- * Copyright (C) 2017-2020 by the Metroid Community Discord Server's Development Team. Some rights reserved.
+ * Copyright (C) 2017-2023 by the Metroid Community Discord Server's Development Team. Some rights reserved.
  *
  * License GPLv3+: GNU General Public License version 3 or later (at your choice):
  * <http://gnu.org/licenses/gpl.html>. This is free software: you are free to
@@ -271,7 +271,15 @@ class LogCommandHandler implements CommandHandler {
                                                                 Map<String, String> filter = parent.getConfig().getUserIdToLogChannelIdFilters();
 
                                                                 if (filter.containsKey(filterUser.getId())) {
-                                                                    Miscellaneous.respond(event, "**Warning:** User " + filterUser.getName() + '#' + filterUser.getDiscriminator() +
+                                                                    String filterUserName;
+
+                                                                    if (Miscellaneous.userHasDiscriminator(filterUser)) {
+                                                                        filterUserName = filterUser.getName() + '#' + filterUser.getDiscriminator();
+                                                                    } else {
+                                                                        filterUserName = "@" + filterUser.getName();
+                                                                    }
+
+                                                                    Miscellaneous.respond(event, "**Warning:** User " + filterUserName +
                                                                         " was previously being filtered to " + event.getGuild().getTextChannelById(filter.get(filterUser.getId())).getName() +
                                                                         ".  Overwriting.");
                                                                 }
